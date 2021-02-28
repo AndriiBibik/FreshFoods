@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Fresh Foods xx-xx-xxxx</string>
+
+    <string name="main_activity_title">Products shelf</string>
+
+    <!--enter product layout-->
+    <string name="enter_product_text_field_label">Product Title/Description</string>
+    <string name="expiry_date_text_field_label">Expiry date xx-xx-xxxx</string>
+    <string name="expiry_date_text">Expiry date</string>
+    <string name="put_button_text">put</string>
+    <string name="required_helper_text">* Required</string>
+    <!--products list-->
+    <string name="days_left_text">\u0020d left</string>
+</resources>
