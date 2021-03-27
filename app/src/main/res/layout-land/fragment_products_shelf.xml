@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/color_host_fragment_background"
+        android:orientation="horizontal">
+
+        <include
+            android:id="@+id/enter_product_layout"
+            layout="@layout/layout_enter_product"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="@dimen/products_main_blocks_space"
+            android:background="?android:colorBackground"
+            android:layout_weight="1" />
+
+        <include
+            android:id="@+id/product_list_layout"
+            layout="@layout/layout_product_list"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+</layout>

@@ -1,10 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="product_image_size">80dp</dimen>
+    <dimen name="product_image_size">88dp</dimen>
     <dimen name="enter_product_layout_horizontal_padding">16dp</dimen>
-    <dimen name="enter_product_layout_top_padding">24dp</dimen>
+    <dimen name="enter_product_layout_top_padding">20dp</dimen>
     <dimen name="enter_product_layout_bottom_padding">16dp</dimen>
-    <dimen name="enter_product_form_components_space">20dp</dimen>
+    <!--Space between image button to capture photo and input elements-->
+    <dimen name="enter_product_capture_photo_space">20dp</dimen>
+    <dimen name="enter_product_between_components_space">12dp</dimen>
+    <!--image in "enter product" layout-->
+    <dimen name="image_progress_indicator_size">36dp</dimen>
+    <!--host fragment-->
+    <dimen name="products_main_blocks_space">12dp</dimen>
+    <dimen name="products_main_blocks_elevation">2dp</dimen>
+
+    <!--products list(recyclerview)-->
+    <dimen name="products_list_panel_sort_text_size">20sp</dimen>
+    <dimen name="products_list_panel_sort_text_right_margin">12dp</dimen>
+    <dimen name="products_list_panel_ic_size">32dp</dimen>
+    <dimen name="products_list_panel_ic_space">16dp</dimen>
+    <dimen name="products_list_panel_vertical_padding">8dp</dimen>
+    <dimen name="products_list_panel_horizontal_padding">16dp</dimen>
 
     <!--products list item-->
     <dimen name="products_list_item_height">72dp</dimen>
@@ -15,4 +30,18 @@
     <dimen name="products_list_item_title_size">16sp</dimen>
     <dimen name="products_list_item_additional_text_size">14sp</dimen>
     <dimen name="days_left_left_padding">16dp</dimen>
+
+    <!--products list spinner-->
+    <dimen name="item_spinner_text_size">24sp</dimen>
+    <dimen name="item_spinner_ic_size">24sp</dimen>
+    <dimen name="spinner_stroke">2dp</dimen>
+    <dimen name="spinner_corner_radius">3dp</dimen>
+    <dimen name="spinner_elevation">1dp</dimen>
+    <dimen name="spinner_arrow_right_padding">4dp</dimen>
+    <dimen name="spinner_vertical_padding">4dp</dimen>
+    <dimen name="spinner_padding_right">16dp</dimen>
+    <dimen name="spinner_item_padding">4dp</dimen>
+    <dimen name="spinner_item_text_ic_space">3dp</dimen>
+    <dimen name="spinner_item_padding_left">8dp</dimen>
+    <dimen name="spinner_item_padding_right">2dp</dimen>
 </resources>

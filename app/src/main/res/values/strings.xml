@@ -9,6 +9,28 @@
     <string name="expiry_date_text">Expiry date</string>
     <string name="put_button_text">put</string>
     <string name="required_helper_text">* Required</string>
-    <!--products list-->
+    <!--products list(recyclerview) layout-->
+    <string name="sort_text">Sort:</string>
+    <!--products list(recyclerview) item-->
     <string name="days_left_text">\u0020d left</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!--sort options for products list-->
+    <string name="time_left_asc">time left</string>
+    <string name="time_left_desc">time left</string>
+    <string name="time_added_desc">time added</string>
+    <string name="time_added_asc">time added</string>
+    <string-array name="sort_by_array">
+        <item>@string/time_left_asc</item>
+        <item>@string/time_left_desc</item>
+        <item>@string/time_added_desc</item>
+        <item>@string/time_added_asc</item>
+    </string-array>
+    <string-array name="sort_by_array_is_asc">
+        <item>true</item>
+        <item>false</item>
+        <item>false</item>
+        <item>true</item>
+    </string-array>
 </resources>
