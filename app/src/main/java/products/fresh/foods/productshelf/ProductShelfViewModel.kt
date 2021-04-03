@@ -18,6 +18,7 @@ import kotlinx.coroutines.*
 import products.fresh.foods.R
 import products.fresh.foods.database.ExpiryDate
 import products.fresh.foods.database.Product
+import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabaseDao
 import java.io.File
 import java.io.FileOutputStream
@@ -26,7 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 class ProductShelfViewModel(
-    val databaseDao: ProductDatabaseDao, application: Application
+    private val databaseDao: ProductDatabaseDao, application: Application
 ) : AndroidViewModel(application) {
 
     companion object {
@@ -43,7 +44,23 @@ class ProductShelfViewModel(
         const val DATE_REPRESENTATION_PATTERN = "dd-MM-yyyy"
         const val DATE_DATABASE_PATTERN = "yyyyMMdd"
         private const val IMAGE_QUALITY = 90
+        const val SPAN_ONE = 1
+        // to convert database int representation of a date into ui representation
+        fun convertExpiryDateForUi(expiryDate: Int): String? {
+            return SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString())?.let {
+                SimpleDateFormat(DATE_REPRESENTATION_PATTERN).format(it)
+            }
+        }
+        // to convert expiryDate database Int value into time left in milliseconds
+        fun convertExpiryDateToTimeLeft(expiryDate: Int): Long {
+            return  (SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString()).time
+                             + (24*60*60*1000-1) - Date().time)
+        }
     }
+
+    // list of ProductsAndExpiryDates
+    var list = databaseDao.getAllProductsAndExpiryDatesDesc()
+
 
     // ViewModel Job
     private val viewModelJob = Job()
@@ -110,6 +127,22 @@ class ProductShelfViewModel(
     init {
         // init observer to update list of products automatically depending on sort type
         sortSpinnerPos.observeForever(sortTypeObserver)
+    }
+
+    // to calculate number of spans(columns)
+    private fun calculateSpanCount(containerWidth: Int): Int {
+        val columnWidth = getApplication<Application>().resources.let {
+            (it.getDimension(R.dimen.products_grid_item_image_width)
+            + it.getDimension(R.dimen.product_grid_item_margin) * 2).toInt()
+        }
+        return containerWidth / columnWidth
+    }
+    // get number of spans
+    fun getNumberOfSpans(containerWidth: Int): Int {
+        return when(isGrid) {
+            true -> calculateSpanCount(containerWidth)
+            false -> SPAN_ONE
+        }
     }
 
     ///////////// working with product image /////////////

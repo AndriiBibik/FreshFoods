@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/product_grid_item_margin"
+    app:cardElevation="@dimen/product_grid_item_elevation"
+    app:cardCornerRadius="@dimen/product_grid_item_corners"
+    xmlns:tools="http://schemas.android.com/tools">
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <!--product image-->
+        <ImageView
+            android:id="@+id/product_image_grid"
+            android:layout_width="@dimen/products_grid_item_image_width"
+            android:layout_height="@dimen/products_grid_item_image_height"
+            android:scaleType="centerCrop"
+            tools:src="@drawable/bird_270"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/product_grid_horizontal_padding"
+            android:paddingBottom="@dimen/product_grid_bottom_padding"
+            android:orientation="vertical">
+            <!--product title-->
+            <TextView
+                android:id="@+id/product_title_grid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/products_grid_item_title_size"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:textStyle="bold"
+                tools:text="Bird. Sing sing sing a song song. Tweet tweet tweet"/>
+            <!--product additional text. days left in this case-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <!--number-->
+                <TextView
+                    android:id="@+id/product_days_left_grid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/products_grid_item_additional_text_size"
+                    tools:text="12 d left"
+                    tools:textColor="#00dc00"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

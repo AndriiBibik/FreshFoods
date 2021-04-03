@@ -9,6 +9,9 @@
     <!--main activity-->
     <color name="ok_color">#41c300</color>
 
+    <!--list product item-->
+    <color name="product_list_divider">#1F000000</color>
+
     <!--host fragment-->
     <color name="color_host_fragment_background">#d3d3d3</color>
     <color name="color_basic_light_background">#fafafa</color>
@@ -27,6 +30,7 @@
         <item>#8ede0b</item><!--4-->
         <item>#48dd05</item><!--5-->
         <item>#00dc00</item><!--6-->
+        <item>#9E9E9E</item><!--expired-->
     </string-array>
 
 </resources>

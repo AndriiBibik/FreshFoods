@@ -31,7 +31,7 @@ interface ProductDatabaseDao {
 
     /* select all products desc by id(as well as by adding time) */
     @Query("SELECT * FROM products_table ORDER BY product_id DESC")
-    fun getAllProductsAndExpiryDatesDesc() : List<ProductAndExpiryDate>
+    fun getAllProductsAndExpiryDatesDesc() : LiveData<List<ProductAndExpiryDate>>
 
 //    /* select all products sorted by expiry date desc */
 //    @Query("SELECT * FROM products_table ORDER BY expiry_date DESC")

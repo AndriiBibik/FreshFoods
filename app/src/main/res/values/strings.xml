@@ -11,10 +11,12 @@
     <string name="required_helper_text">* Required</string>
     <!--products list(recyclerview) layout-->
     <string name="sort_text">Sort:</string>
-    <!--products list(recyclerview) item-->
+    <!--products list/grid(recyclerview) item-->
     <string name="days_left_text">\u0020d left</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="expired_shortcut">exp\u0020</string>
+    <string name="days_shortcut">d</string>
+    <string name="hours_shortcut">h</string>
+    <string name="minutes_shortcut">min</string>
 
     <!--sort options for products list-->
     <string name="time_left_asc">time left</string>

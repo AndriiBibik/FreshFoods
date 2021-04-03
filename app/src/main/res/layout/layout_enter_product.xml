@@ -105,6 +105,8 @@
             android:layout_marginTop="@dimen/enter_product_between_components_space"
             android:text="@string/put_button_text"
             android:enabled="false"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="1"
             app:icon="@drawable/ic_done"
             app:layout_constraintStart_toStartOf="@+id/expiry_date_text_field"
             app:layout_constraintTop_toBottomOf="@+id/expiry_date_text_field" />

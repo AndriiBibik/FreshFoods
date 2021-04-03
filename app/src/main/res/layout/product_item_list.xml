@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/products_list_item_height">
+
+    <ImageView
+        android:id="@+id/product_image_list"
+        android:layout_width="@dimen/products_list_item_image_width"
+        android:layout_height="@dimen/products_list_item_image_height"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/avocado" />
+
+    <!--Title/Description-->
+    <TextView
+        android:id="@+id/product_title_list"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/products_list_item_image_to_text_space"
+        android:layout_marginRight="@dimen/product_list_title_to_days_left_space"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textSize="@dimen/products_list_item_title_size"
+        app:layout_constraintBottom_toTopOf="@+id/expiry_date_prefix"
+        app:layout_constraintEnd_toStartOf="@id/product_days_left_list"
+        app:layout_constraintStart_toEndOf="@+id/product_image_list"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="Avocado. Nice green fruit etc etc etc etc etc" />
+
+    <!--Expiry date-->
+    <TextView
+        android:id="@+id/expiry_date_prefix"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/expiry_date_text"
+        android:textColor="@color/colorSecondaryText"
+        android:textSize="@dimen/products_list_item_additional_text_size"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/expiry_date_separation"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toEndOf="@+id/product_image_list"
+        app:layout_constraintStart_toStartOf="@+id/product_title_list"
+        app:layout_constraintTop_toBottomOf="@+id/product_title_list" />
+
+    <TextView
+        android:id="@+id/expiry_date_separation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=": "
+        android:textColor="@color/colorSecondaryText"
+        android:textSize="@dimen/products_list_item_additional_text_size"
+        app:layout_constraintEnd_toStartOf="@+id/product_expiry_date_list"
+        app:layout_constraintStart_toEndOf="@+id/expiry_date_prefix"
+        app:layout_constraintTop_toTopOf="@+id/expiry_date_prefix" />
+
+    <TextView
+        android:id="@+id/product_expiry_date_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/colorSecondaryText"
+        android:textSize="@dimen/products_list_item_additional_text_size"
+        app:layout_constraintStart_toEndOf="@+id/expiry_date_separation"
+        app:layout_constraintTop_toTopOf="@+id/expiry_date_separation"
+        tools:text="21-12-2020"/>
+
+    <TextView
+        android:id="@+id/product_days_left_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/products_list_item_right_padding"
+        android:layout_marginRight="@dimen/products_list_item_right_padding"
+        android:textSize="@dimen/products_list_item_additional_text_size"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="7 d left"
+        tools:textColor="#00dc00" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/product_list_divider"
+        android:background="@color/product_list_divider"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/product_title_list" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

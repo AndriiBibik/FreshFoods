@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,19 +19,23 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ImageView
 import androidx.core.content.FileProvider
+import androidx.core.view.doOnLayout
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointForward
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.android.synthetic.main.layout_enter_product.view.*
 import kotlinx.android.synthetic.main.layout_product_list.view.*
+import kotlinx.coroutines.delay
 import products.fresh.foods.R
 import products.fresh.foods.database.ProductDatabase
 import products.fresh.foods.databinding.FragmentProductsShelfBinding
+import products.fresh.foods.productshelf.ProductShelfViewModel.Companion.SPAN_ONE
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -47,7 +52,11 @@ class ProductShelfFragment : Fragment() {
 
     private lateinit var productShelfViewModel: ProductShelfViewModel
 
-    private val enterProductTextWatcher = object: TextWatcher {
+    private lateinit var productAdapter: ProductAndExpiryDateAdapter
+
+    private lateinit var gridLayoutManager: GridLayoutManager
+
+    private val enterProductTextWatcher = object : TextWatcher {
         override fun afterTextChanged(s: Editable?) {
         }
 
@@ -72,9 +81,7 @@ class ProductShelfFragment : Fragment() {
                     it.enterTitleDescription(titleText)
                 }
                 showTitleCorrectIc()
-            }
-
-            else {
+            } else {
                 productShelfViewModel?.let {
                     it.enterTitleDescription(null)
                 }
@@ -111,6 +118,37 @@ class ProductShelfFragment : Fragment() {
                 .get(ProductShelfViewModel::class.java)
         //
 
+        val time = Date().time
+
+        // init adapter with GridLayoutManager when layout width is available
+        binding.productListLayout.recycler_view_container.doOnLayout {
+
+            // init gridLayoutManager
+            gridLayoutManager = GridLayoutManager(
+                context,
+                productShelfViewModel.getNumberOfSpans(it.width)
+            )
+            // init adapter
+            productAdapter = ProductAndExpiryDateAdapter(gridLayoutManager)
+
+
+            // this observer will be triggered: 1. list goes from null to {some database data};
+            // 2. if ViewModel loads {database data} first (before doOnLayout triggered)
+            // That is GOOD. TESTED...
+            // GridLayoutManager and Adapter are initialized, now observer on the list can be applied
+            productShelfViewModel.list.observe(viewLifecycleOwner, Observer {
+
+                // list is changed, so submit it to the adapter
+                productAdapter.submitList(it)
+
+                // apply initialized GridLayoutManager and Adapter to RecyclerView
+                binding.productListLayout.products_recycler_view.apply {
+                    layoutManager = gridLayoutManager
+                    adapter = productAdapter
+                }
+            })
+        }
+
         // listen to edit text's changes
         // for "title/description" and for "expiry date"
         binding.enterProductLayout.enter_product_title_edit_text
@@ -128,7 +166,7 @@ class ProductShelfFragment : Fragment() {
 
             //TODO get grid list ic from ViewModel
             // decide to display list in grid or list mode
-            when(productShelfViewModel.isGrid) {
+            when (productShelfViewModel.isGrid) {
                 // grid
                 true -> {
                     greedOrList.setImageResource(R.drawable.ic_list_on)
@@ -141,18 +179,24 @@ class ProductShelfFragment : Fragment() {
 
             // listen clicks upon this switch imageView
             greedOrList.setOnClickListener { view ->
-                when(productShelfViewModel.isGrid) {
+                when (productShelfViewModel.isGrid) {
                     // grid
                     true -> {
                         // switch to list
                         (view as ImageView).setImageResource(R.drawable.ic_grid_on)
                         // change variable in viewmodel
                         productShelfViewModel.isGrid = false
+                        // change span for GridLayoutManager to switch for list
+                        gridLayoutManager.spanCount = SPAN_ONE
                     }
                     false -> {
                         (view as ImageView).setImageResource(R.drawable.ic_list_on)
                         // change variable in viewmodel
                         productShelfViewModel.isGrid = true
+                        // change span for GridLayoutManager to switch for grid
+                        gridLayoutManager.spanCount = productShelfViewModel.getNumberOfSpans(
+                            binding.productListLayout.recycler_view_container.width
+                        )
                     }
                 }
             }
@@ -170,7 +214,12 @@ class ProductShelfFragment : Fragment() {
 
                 spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
-                    override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
+                    override fun onItemSelected(
+                        parent: AdapterView<*>?,
+                        view: View?,
+                        pos: Int,
+                        id: Long
+                    ) {
                         productShelfViewModel.setSortSpinnerPos(pos)
                     }
 
@@ -188,7 +237,7 @@ class ProductShelfFragment : Fragment() {
 
         // observe changes to isImgageProcessing to show or disable progressBar
         productShelfViewModel.isImageProcessing.observe(viewLifecycleOwner, Observer {
-            when(it) {
+            when (it) {
                 true -> binding.enterProductLayout.image_progress_bar.visibility = View.VISIBLE
                 false -> binding.enterProductLayout.image_progress_bar.visibility = View.GONE
             }
@@ -201,13 +250,70 @@ class ProductShelfFragment : Fragment() {
 
         // navigate to extended product list fragment by clicking "extend list" button
         binding.productListLayout.expand_lower_product_list_button.setOnClickListener {
+
+            // set smaller number of spans if it is 1. Landscape mode; 2. Grid mode on;
+            // 3. Goes from "full" to "normal" screen
+            if(
+                resources.getBoolean(R.bool.is_landscape) &&
+                productShelfViewModel.isGrid &&
+                productShelfViewModel.isListFullScreen.value!!
+            ) {
+                // total fragment width
+                val fragmentWidth = binding.fragmentProductShelfContainer.width
+                // list container normal (!fullScreen) width in landscape
+                val listContainerWidth =
+                    ((fragmentWidth - resources.getDimension(R.dimen.products_main_blocks_space)) / 2).toInt()
+                // number of spans in normal mode
+                val spans = productShelfViewModel.getNumberOfSpans(listContainerWidth)
+                // set new number of spans to GridLayoutManager
+                gridLayoutManager?.let {
+                    it.spanCount = spans
+                }
+            }
             productShelfViewModel.setIsListFullScreen(!productShelfViewModel.isListFullScreen.value!!)
         }
+
+        // to change span count in gridLayoutManager when it is needed in switching between fullscreen and normal
+        // Restrict listener to only Landscape mode
+        // Restrict firing on layout initialization
+        // Restrict to going into "fullscreen" mode from normal (allowed); other way will be
+        // triggered in "isFullScreen" observer to prevent recyclerview items change in width
+        // in this case first - layout, second - larger number of spans
+        // in other case first - number of spans, second - layout
+        binding.productListLayout.recycler_view_container
+            .addOnLayoutChangeListener { _,
+                                         left, top, right, bottom,
+                                         oldLeft, oldTop, oldRight, oldBottom ->
+
+                // Restrict for landscape mode
+                if (resources.getBoolean(R.bool.is_landscape)) {
+                    // Do not allow firing in first initialization
+                    if (!(oldLeft == 0 && oldRight == 0)) {
+                        val oldWidth = oldRight - oldLeft
+                        val width = right - left
+                        val fragmentWidth = binding.fragmentProductShelfContainer.width
+                        // only when goes into full screen mode
+                        if ((width != oldWidth) && (width == fragmentWidth)) {
+                            Log.v(
+                                "LOG_WIDTH",
+                                "$left $top $right $bottom $oldLeft $oldTop $oldRight $oldBottom"
+                            )
+                            Log.v("LOG_WIDTH", "$width")
+
+                            gridLayoutManager?.apply {
+                                requestLayout()
+                                spanCount = productShelfViewModel.getNumberOfSpans(width)
+                            }
+                        }
+                    }
+                }
+            }
 
         // observe isListFullScreen value from ViewModel and make appropriate decision on the layout
         productShelfViewModel.isListFullScreen.observe(
             viewLifecycleOwner,
             Observer { isListFullScreen ->
+                binding.productListLayout.recycler_view_container.measure(0, 0)
                 when (isListFullScreen) {
                     true -> {
                         binding.enterProductLayout.visibility = View.GONE
@@ -262,7 +368,9 @@ class ProductShelfFragment : Fragment() {
         // add on positive button listener
         datePicker.addOnPositiveButtonClickListener { pickedDate ->
             // Date into String
-            val date = SimpleDateFormat(ProductShelfViewModel.DATE_REPRESENTATION_PATTERN).format(Date(pickedDate))
+            val date = SimpleDateFormat(ProductShelfViewModel.DATE_REPRESENTATION_PATTERN).format(
+                Date(pickedDate)
+            )
             // giving this value to ViewModel
             productShelfViewModel.enterExpiryDate(date)
             // setting up custom end icon - date is picked
@@ -272,6 +380,7 @@ class ProductShelfFragment : Fragment() {
         // show
         datePicker.show(activity?.supportFragmentManager!!, "TAG_TO_SHOW")
     }
+
 
     private fun buildDatePicker(): MaterialDatePicker<Long> {
         // build date picker dialog
@@ -328,7 +437,8 @@ class ProductShelfFragment : Fragment() {
             ) {
                 //permission was not enabled
                 val permissions =
-                    arrayOf(Manifest.permission.CAMERA
+                    arrayOf(
+                        Manifest.permission.CAMERA
                         , Manifest.permission.WRITE_EXTERNAL_STORAGE
                     )
                 //show popup to request permissions

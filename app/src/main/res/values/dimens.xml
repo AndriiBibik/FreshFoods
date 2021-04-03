@@ -20,6 +20,7 @@
     <dimen name="products_list_panel_ic_space">16dp</dimen>
     <dimen name="products_list_panel_vertical_padding">8dp</dimen>
     <dimen name="products_list_panel_horizontal_padding">16dp</dimen>
+    <dimen name="product_list_divider">1dp</dimen>
 
     <!--products list item-->
     <dimen name="products_list_item_height">72dp</dimen>
@@ -29,7 +30,19 @@
     <dimen name="products_list_item_right_padding">16dp</dimen>
     <dimen name="products_list_item_title_size">16sp</dimen>
     <dimen name="products_list_item_additional_text_size">14sp</dimen>
-    <dimen name="days_left_left_padding">16dp</dimen>
+    <dimen name="product_list_title_to_days_left_space">16dp</dimen>
+
+    <!--products grid item-->
+    <dimen name="products_grid_item_image_width">108dp</dimen>
+    <dimen name="products_grid_item_image_height">72dp</dimen>
+    <dimen name="products_grid_item_title_size">16sp</dimen>
+    <dimen name="product_grid_item_days_number_size">18sp</dimen>
+    <dimen name="products_grid_item_additional_text_size">14sp</dimen>
+    <dimen name="product_grid_item_corners">4dp</dimen>
+    <dimen name="product_grid_horizontal_padding">8dp</dimen>
+    <dimen name="product_grid_bottom_padding">4dp</dimen>
+    <dimen name="product_grid_item_margin">4dp</dimen>
+    <dimen name="product_grid_item_elevation">2dp</dimen>
 
     <!--products list spinner-->
     <dimen name="item_spinner_text_size">24sp</dimen>

@@ -27,7 +27,8 @@
         </provider>
 
         <activity
-            android:name="products.fresh.foods.MainActivity">
+            android:name="products.fresh.foods.MainActivity"
+            android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
