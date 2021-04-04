@@ -18,6 +18,7 @@ import kotlinx.coroutines.*
 import products.fresh.foods.R
 import products.fresh.foods.database.ExpiryDate
 import products.fresh.foods.database.Product
+import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabaseDao
 import java.io.File
 import java.io.FileOutputStream
@@ -28,6 +29,11 @@ import java.util.Date
 class ProductShelfViewModel(
     private val databaseDao: ProductDatabaseDao, application: Application
 ) : AndroidViewModel(application) {
+
+    class ProductAndExpiryDateListener(val clickListener: (expiryDateId: Long) -> Unit) {
+        fun onClick(productAndExpiryDate: ProductAndExpiryDate)
+                = clickListener(productAndExpiryDate.expiryDate.expiryDateId)
+    }
 
     companion object {
         const val APP_SHARED_PREFERENCES = "app_shared_preferences"

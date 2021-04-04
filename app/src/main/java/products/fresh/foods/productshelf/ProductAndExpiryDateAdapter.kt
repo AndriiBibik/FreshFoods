@@ -15,8 +15,13 @@ import androidx.recyclerview.widget.RecyclerView
 import products.fresh.foods.R
 import products.fresh.foods.database.ProductAndExpiryDate
 
+interface OnItemClickListener {
+    fun onItemClick(item: ProductAndExpiryDate)
+}
+
 class ProductAndExpiryDateAdapter(
-    private val layoutManager: GridLayoutManager
+    private val layoutManager: GridLayoutManager,
+    private val clickListener: OnItemClickListener
 ) : ListAdapter<ProductAndExpiryDate, ProductAndExpiryDateAdapter.ViewHolder>(
     ProductAndExpiryDateDiffCallback()
 ) {
@@ -60,7 +65,13 @@ class ProductAndExpiryDateAdapter(
             }
         }
 
-        fun bind(item: ProductAndExpiryDate) {
+        fun bind(item: ProductAndExpiryDate, clickListener: OnItemClickListener) {
+
+            // setting click listener
+            itemView.setOnClickListener {
+                clickListener.onItemClick(item)
+            }
+
             //TODO(to run this on the background thread)
             val thumbnail = BitmapFactory.decodeFile(item.product.thumbnail)
             // set image
@@ -147,7 +158,7 @@ class ProductAndExpiryDateAdapter(
 
     override fun onBindViewHolder(holder: ProductAndExpiryDateAdapter.ViewHolder, position: Int) {
         // binding encapsulated inside ViewHolder class
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), clickListener)
     }
 
     class ProductAndExpiryDateDiffCallback : DiffUtil.ItemCallback<ProductAndExpiryDate>() {

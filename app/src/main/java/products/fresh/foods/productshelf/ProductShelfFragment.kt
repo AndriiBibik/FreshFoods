@@ -18,6 +18,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.core.view.doOnLayout
 import androidx.databinding.DataBindingUtil
@@ -33,6 +34,7 @@ import kotlinx.android.synthetic.main.layout_enter_product.view.*
 import kotlinx.android.synthetic.main.layout_product_list.view.*
 import kotlinx.coroutines.delay
 import products.fresh.foods.R
+import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabase
 import products.fresh.foods.databinding.FragmentProductsShelfBinding
 import products.fresh.foods.productshelf.ProductShelfViewModel.Companion.SPAN_ONE
@@ -127,8 +129,12 @@ class ProductShelfFragment : Fragment() {
                 productShelfViewModel.getNumberOfSpans(it.width)
             )
             // init adapter
-            productAdapter = ProductAndExpiryDateAdapter(gridLayoutManager)
-
+            productAdapter = ProductAndExpiryDateAdapter(gridLayoutManager,
+                object : OnItemClickListener {
+                    override fun onItemClick(item: ProductAndExpiryDate) {
+                        Toast.makeText(context, "$item", Toast.LENGTH_LONG).show()
+                    }
+                })
 
             // this observer will be triggered: 1. list goes from null to {some database data};
             // 2. if ViewModel loads {database data} first (before doOnLayout triggered)
