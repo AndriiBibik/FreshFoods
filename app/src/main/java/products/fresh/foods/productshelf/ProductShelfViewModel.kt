@@ -13,12 +13,11 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
+import androidx.lifecycle.Transformations
 import kotlinx.coroutines.*
 import products.fresh.foods.R
 import products.fresh.foods.database.ExpiryDate
 import products.fresh.foods.database.Product
-import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabaseDao
 import java.io.File
 import java.io.FileOutputStream
@@ -58,20 +57,39 @@ class ProductShelfViewModel(
         }
     }
 
+    // for shared preferences
+    private val sharedPreferences: SharedPreferences = application.getSharedPreferences(
+        APP_SHARED_PREFERENCES, Context.MODE_PRIVATE
+    )
+
+    // current sort spinner position
+    val sortSpinnerPos =
+        MutableLiveData<Int>(sharedPreferences.getInt(SPINNER_ID_KEY, SPINNER_ID_TIME_ADDED_DESC))
+
+    fun setSortSpinnerPos(pos: Int) {
+        sortSpinnerPos.value = pos
+        sharedPreferences.edit().putInt(SPINNER_ID_KEY, pos).apply()
+    }
+
     // list of ProductsAndExpiryDates
     var list = databaseDao.getAllProductsAndExpiryDatesDesc()
-
+    // actual sorted list that we going to use. This list is based on "list" above and "sortType"
+    val sortedList = Transformations.switchMap(sortSpinnerPos) { pos ->
+        Transformations.map(list) {
+            when(pos) {
+                SPINNER_ID_TIME_LEFT_ASC -> it.sortedBy { p ->  p.expiryDate.expiryDate}//0
+                SPINNER_ID_TIME_LEFT_DESC -> it.sortedByDescending { p ->  p.expiryDate.expiryDate}//1
+                SPINNER_ID_TIME_ADDED_ASC -> it.sortedBy { p ->  p.product.productId}//3
+                else -> it//2
+            }
+        }
+    }
 
     // ViewModel Job
     private val viewModelJob = Job()
 
     // coroutines scope
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
-
-    // for shared preferences
-    private val sharedPreferences: SharedPreferences = application.getSharedPreferences(
-        APP_SHARED_PREFERENCES, Context.MODE_PRIVATE
-    )
 
     // Image Data
     //TODO(Insert image data)
@@ -108,26 +126,6 @@ class ProductShelfViewModel(
             field = isGrid
             sharedPreferences.edit().putBoolean(IS_GRiD_KEY, isGrid).apply()
         }
-
-    // current sort spinner position
-    val sortSpinnerPos =
-        MutableLiveData<Int>(sharedPreferences.getInt(SPINNER_ID_KEY, SPINNER_ID_TIME_ADDED_DESC))
-
-    fun setSortSpinnerPos(pos: Int) {
-        sortSpinnerPos.value = pos
-        sharedPreferences.edit().putInt(SPINNER_ID_KEY, pos).apply()
-    }
-
-    private val sortTypeObserver = object : Observer<Int> {
-        override fun onChanged(pos: Int) {
-//            refreshProducts()
-        }
-    }
-
-    init {
-        // init observer to update list of products automatically depending on sort type
-        sortSpinnerPos.observeForever(sortTypeObserver)
-    }
 
     // to calculate number of spans(columns)
     private fun calculateSpanCount(containerWidth: Int): Int {
@@ -379,17 +377,6 @@ class ProductShelfViewModel(
         return imageFile.absolutePath
     }
 
-//    suspend fun getProductsFromDatabase(): LiveData<List<Product>> {
-//        return withContext(Dispatchers.IO) {
-//            when (sortSpinnerPos.value) {
-//                SPINNER_ID_TIME_LEFT_ASC -> databaseDao.getAllProductsAscByExpiryDate()
-//                SPINNER_ID_TIME_LEFT_DESC -> databaseDao.getAllProductsDescByExpiryDate()
-//                SPINNER_ID_TIME_ADDED_ASC -> databaseDao.getAllProducts()
-//                else -> databaseDao.getAllProductsDesc()
-//            }
-//        }
-//    }
-
     fun enterExpiryDate(date: String) {
         _expiryDate.value = date
     }
@@ -408,7 +395,5 @@ class ProductShelfViewModel(
     override fun onCleared() {
         super.onCleared()
         viewModelJob.cancel()
-        //remove forever observer
-        sortSpinnerPos.removeObserver(sortTypeObserver)
     }
 }

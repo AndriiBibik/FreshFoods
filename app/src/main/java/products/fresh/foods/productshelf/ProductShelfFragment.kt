@@ -118,8 +118,6 @@ class ProductShelfFragment : Fragment() {
                 .get(ProductShelfViewModel::class.java)
         //
 
-        val time = Date().time
-
         // init adapter with GridLayoutManager when layout width is available
         binding.productListLayout.recycler_view_container.doOnLayout {
 
@@ -136,7 +134,7 @@ class ProductShelfFragment : Fragment() {
             // 2. if ViewModel loads {database data} first (before doOnLayout triggered)
             // That is GOOD. TESTED...
             // GridLayoutManager and Adapter are initialized, now observer on the list can be applied
-            productShelfViewModel.list.observe(viewLifecycleOwner, Observer {
+            productShelfViewModel.sortedList.observe(viewLifecycleOwner, Observer {
 
                 // list is changed, so submit it to the adapter
                 productAdapter.submitList(it)
@@ -221,6 +219,8 @@ class ProductShelfFragment : Fragment() {
                         id: Long
                     ) {
                         productShelfViewModel.setSortSpinnerPos(pos)
+                        // update RecyclerView
+                        productAdapter.submitList(productShelfViewModel.sortedList.value)
                     }
 
                     override fun onNothingSelected(parent: AdapterView<*>?) {
