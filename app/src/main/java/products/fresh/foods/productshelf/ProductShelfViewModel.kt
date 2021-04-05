@@ -313,11 +313,6 @@ class ProductShelfViewModel(
     //
     //
 
-//    fun refreshProducts() {
-//        uiScope.launch {
-//            products.value = getProductsFromDatabase().value
-//        }
-//    }
 
     // for "put product" button in fragment
     fun onPutProduct() {

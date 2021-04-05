@@ -19,12 +19,15 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.doOnLayout
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointForward
@@ -90,7 +93,6 @@ class ProductShelfFragment : Fragment() {
                 removeTitleCorrectIc()
             }
 
-
             if (expiryDateText.isNotEmpty())
                 showExpiryDateCorrectIc()
 
@@ -101,6 +103,11 @@ class ProductShelfFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        // set ActionBar title
+        (activity as AppCompatActivity).supportActionBar?.apply {
+            title = getString(R.string.product_shelf_fragment_title)
+        }
 
         // Get a reference to the binding object and inflate the fragment views.
         binding = DataBindingUtil.inflate(
@@ -132,7 +139,10 @@ class ProductShelfFragment : Fragment() {
             productAdapter = ProductAndExpiryDateAdapter(gridLayoutManager,
                 object : OnItemClickListener {
                     override fun onItemClick(item: ProductAndExpiryDate) {
-                        Toast.makeText(context, "$item", Toast.LENGTH_LONG).show()
+                        // navigate to details page
+                        val action = ProductShelfFragmentDirections
+                            .actionProductShelfFragmentToProductDetailsFragment(item.expiryDate.expiryDateId)
+                        findNavController().navigate(action)
                     }
                 })
 
@@ -519,5 +529,4 @@ class ProductShelfFragment : Fragment() {
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
-
 }

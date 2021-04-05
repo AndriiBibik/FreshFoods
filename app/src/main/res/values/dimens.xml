@@ -57,4 +57,11 @@
     <dimen name="spinner_item_text_ic_space">3dp</dimen>
     <dimen name="spinner_item_padding_left">8dp</dimen>
     <dimen name="spinner_item_padding_right">2dp</dimen>
+
+    <!--product item details layout-->
+    <dimen name="details_layout_product_title">20sp</dimen>
+    <dimen name="details_layout_expiry_date">18sp</dimen>
+    <dimen name="details_layout_days_left">18sp</dimen>
+    <dimen name="details_layout_padding">16sp</dimen>
+    <dimen name="details_layout_items_space">16dp</dimen>
 </resources>

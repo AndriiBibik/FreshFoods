@@ -2,12 +2,23 @@
 <navigation
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/navigation"
-    app:startDestination="@id/productShelfHostFragment">
+    app:startDestination="@id/productShelfFragment">
 
     <fragment
-        android:id="@+id/productShelfHostFragment"
+        android:id="@+id/productShelfFragment"
         android:name="products.fresh.foods.productshelf.ProductShelfFragment"
-        android:label="ProductShelfFragment" />
+        android:label="ProductShelfFragment" >
+        <action
+            android:id="@+id/action_productShelfFragment_to_productDetailsFragment"
+            app:destination="@id/productDetailsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/productDetailsFragment"
+        android:name="products.fresh.foods.productdetails.ProductDetailsFragment"
+        android:label="ProductDetailsFragment" >
+        <argument
+            android:name="expiryDateId"
+            app:argType="long" />
+    </fragment>
 </navigation>

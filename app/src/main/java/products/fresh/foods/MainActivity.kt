@@ -1,31 +1,10 @@
 package products.fresh.foods
 
-import android.Manifest
-import android.app.Activity
-import android.content.ContentValues
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.media.ThumbnailUtils
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.View
-import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.NavigationUI
-import com.google.android.material.datepicker.CalendarConstraints
-import com.google.android.material.datepicker.DateValidatorPointForward
-import com.google.android.material.datepicker.MaterialDatePicker
-import com.google.android.material.textfield.TextInputLayout
-import kotlinx.android.synthetic.main.activity_main.*
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -43,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         // setting up Up button
         NavigationUI.setupActionBarWithNavController(
             this,
-            this.findNavController(R.id.products_shelf_nav_host_fragment)
+            this.findNavController(R.id.main_fragment_holder)
         )
 //
 //        setTitle(R.string.main_activity_title)
@@ -124,7 +103,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        val navController = this.findNavController(R.id.products_shelf_nav_host_fragment)
+        val navController = this.findNavController(R.id.main_fragment_holder)
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
 //
