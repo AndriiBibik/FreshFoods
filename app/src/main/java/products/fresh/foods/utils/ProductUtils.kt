@@ -1,14 +1,39 @@
 package products.fresh.foods.utils
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import products.fresh.foods.GoodFoodApp
 import products.fresh.foods.R
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ProductUtils {
 
     companion object {
-        fun getTextLeftColor(timeLeft: Long): Int {
+
+        const val DATE_REPRESENTATION_PATTERN = "dd-MM-yyyy"
+        const val DATE_DATABASE_PATTERN = "yyyyMMdd"
+
+        // to convert database int representation of a date into ui representation
+        fun convertExpiryDateForUi(expiryDate: Int): String? {
+            return SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString())?.let {
+                SimpleDateFormat(DATE_REPRESENTATION_PATTERN).format(it)
+            }
+        }
+
+        // to convert expiryDate database Int value into time left in milliseconds
+        fun convertExpiryDateToTimeLeft(expiryDate: Int): Long {
+            return (SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString()).time
+                    + (24 * 60 * 60 * 1000 - 1) - Date().time)
+        }
+
+        fun getTextLeftColor(expiryDate: Int): Int {
             // application context to work with resources
             val application = GoodFoodApp.instance
+
+            val timeLeft = convertExpiryDateToTimeLeft(expiryDate)
 
             val daysCount = (timeLeft / (1000 * 60 * 60 * 24)).toInt()
             // set days left color based on daysLeft
@@ -30,9 +55,13 @@ class ProductUtils {
             }
             return Color.parseColor(colorsArray[colorIndex])
         }
-        fun buildTimeLeftText(timeLeft: Long): String {
+
+        fun buildTimeLeftText(expiryDate: Int): String {
             // application context to work with resources
             val resources = GoodFoodApp.instance.resources
+
+            val timeLeft = convertExpiryDateToTimeLeft(expiryDate)
+
             val daysCount = (timeLeft / (1000 * 60 * 60 * 24)).toInt()
 
             return when (daysCount) {
@@ -58,5 +87,13 @@ class ProductUtils {
                 }
             }
         }
+
+        // to read Bitmap from file in the background
+        suspend fun readBitmapInIO(path: String): Bitmap? {
+            return withContext(Dispatchers.IO) {
+                BitmapFactory.decodeFile(path)
+            }
+        }
+
     }
 }

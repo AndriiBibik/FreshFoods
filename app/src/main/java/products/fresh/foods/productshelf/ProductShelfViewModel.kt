@@ -9,7 +9,6 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.media.ThumbnailUtils
 import android.os.Environment
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -20,6 +19,7 @@ import products.fresh.foods.database.ExpiryDate
 import products.fresh.foods.database.Product
 import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabaseDao
+import products.fresh.foods.utils.ProductUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -41,23 +41,8 @@ class ProductShelfViewModel(
         private const val MAX_BITMAP_SIZE_PX = 512
         private const val SUFFIX_LARGER_IMAGE = ""
         private const val SUFFIX_THUMBNAIL_IMAGE = "_thumbnail"
-        const val DATE_REPRESENTATION_PATTERN = "dd-MM-yyyy"
-        const val DATE_DATABASE_PATTERN = "yyyyMMdd"
         private const val IMAGE_QUALITY = 90
         const val SPAN_ONE = 1
-
-        // to convert database int representation of a date into ui representation
-        fun convertExpiryDateForUi(expiryDate: Int): String? {
-            return SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString())?.let {
-                SimpleDateFormat(DATE_REPRESENTATION_PATTERN).format(it)
-            }
-        }
-
-        // to convert expiryDate database Int value into time left in milliseconds
-        fun convertExpiryDateToTimeLeft(expiryDate: Int): Long {
-            return (SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString()).time
-                    + (24 * 60 * 60 * 1000 - 1) - Date().time)
-        }
     }
 
     // for shared preferences
@@ -91,7 +76,6 @@ class ProductShelfViewModel(
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
     // Image Data
-    //TODO(Insert image data)
     private val _productImages = MutableLiveData<ImageBitmaps>()
     val productImages: LiveData<ImageBitmaps>
         get() = _productImages
@@ -161,58 +145,51 @@ class ProductShelfViewModel(
     ///////////// working with product image /////////////
     // to prepare images from path
 
-    private suspend fun setProductImages(imageBitmaps: ImageBitmaps) {
-        _productImages.value = imageBitmaps
-    }
-
     fun processImages() {
 
-        // image started processing
-        _isImageProcessing.value = true
+        uiScope.launch {
+            // image started processing
+            _isImageProcessing.value = true
 
-        CoroutineScope(Dispatchers.Default).launch {
             val imageBitmaps = prepareImageBitmaps(currentPhotoPath)
-            uiScope.launch {
-                imageBitmaps?.let {
-                    // image processed..
-                    _isImageProcessing.value = false
-                    setProductImages(it)
-                }
+            imageBitmaps?.let {
+                _productImages.value = it
             }
+            // image processed..
+            _isImageProcessing.value = false
         }
     }
 
     private suspend fun prepareImageBitmaps(photoPath: String): ImageBitmaps? {
 
-        val time = Date().time
-        // thumbnail image size TODO(check what size is best for thumbnail in final design)
-        val enterPhotoIVSize = getDimenDp(R.dimen.product_image_size)
+        return withContext(Dispatchers.IO) {
+            // thumbnail image size
+            val thumbnailSize = getDimenDp(R.dimen.products_list_item_image_width)
 
-        // larger bitmap size
-        val maxBitmapSize = getMaxBitmapSize()
+            // larger bitmap size
+            val maxBitmapSize = getMaxBitmapSize()
 
-        // getting larger bitmap
-        var maxSizeBitmap = getSavedBitmapScaled(photoPath, maxBitmapSize, maxBitmapSize)
+            // getting larger bitmap
+            var maxSizeBitmap = getSavedBitmapScaled(photoPath, maxBitmapSize, maxBitmapSize)
 
-        // getting thumbnail bitmap
-        var listItemBitmap = getSavedBitmapScaled(photoPath, enterPhotoIVSize!!, enterPhotoIVSize)
+            // getting thumbnail bitmap
+            var listItemBitmap = getSavedBitmapScaled(photoPath, thumbnailSize!!, thumbnailSize)
 
-        // rotate larger bitmap if there is a need to
-        maxSizeBitmap = rotateBitmapIfNeeded(maxSizeBitmap, photoPath)
+            // rotate larger bitmap if there is a need to
+            maxSizeBitmap = rotateBitmapIfNeeded(maxSizeBitmap, photoPath)
 
-        // rotate thumbnail bitmap if there is a need to
-        listItemBitmap = rotateBitmapIfNeeded(listItemBitmap, photoPath)
+            // rotate thumbnail bitmap if there is a need to
+            listItemBitmap = rotateBitmapIfNeeded(listItemBitmap, photoPath)
 
-        // delete image file, all processing is done
-        deleteImage(photoPath)
+            // delete image file, all processing is done
+            deleteImage(photoPath)
 
-        val etime = Date().time
-        Log.v("LOG_H", "$photoPath ${etime - time}")
-
-        if (listItemBitmap != null && maxSizeBitmap != null) {
-            return ImageBitmaps(listItemBitmap, maxSizeBitmap)
+            listItemBitmap?.let {
+                maxSizeBitmap?.let {
+                    ImageBitmaps(listItemBitmap, maxSizeBitmap)
+                }
+            }
         }
-        return null
     }
 
     // delete image having a path
@@ -351,9 +328,9 @@ class ProductShelfViewModel(
             productId?.let { productId ->
                 if (productId != -1L) {
                     val expiryDate = _expiryDate.value?.let {
-                        val date = SimpleDateFormat(DATE_REPRESENTATION_PATTERN)
+                        val date = SimpleDateFormat(ProductUtils.DATE_REPRESENTATION_PATTERN)
                             .parse(it)
-                        SimpleDateFormat(DATE_DATABASE_PATTERN).format(date).toIntOrNull()
+                        SimpleDateFormat(ProductUtils.DATE_DATABASE_PATTERN).format(date).toIntOrNull()
                     }
                     expiryDate?.let { expiryDate ->
                         databaseDao.insert(ExpiryDate(productId, expiryDate))

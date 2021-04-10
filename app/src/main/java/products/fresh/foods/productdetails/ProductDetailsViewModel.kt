@@ -8,7 +8,9 @@ import androidx.lifecycle.MediatorLiveData
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import products.fresh.foods.R
 import products.fresh.foods.database.ProductDatabaseDao
+import products.fresh.foods.utils.ProductUtils
 
 class ProductDetailsViewModel(
     private val expiryDateId: Long,  private val databaseDao: ProductDatabaseDao, application: Application
@@ -29,11 +31,10 @@ class ProductDetailsViewModel(
 
     val image = MediatorLiveData<Bitmap>().apply {
         addSource(productAndExpiryDate) { p ->
-            //TODO Review this for assynchroness
             uiScope.launch {
                 // image path null check
                 p.product.image?.let { image ->
-                    val bitmap = readBitmap(image)
+                    val bitmap = ProductUtils.readBitmapInIO(image)
                     bitmap?.let { value = it }
                 }
             }
@@ -41,25 +42,30 @@ class ProductDetailsViewModel(
     }
 
     val title = MediatorLiveData<String>().apply {
-        addSource(productAndExpiryDate) { t ->
-            t.product.title?.let {
+        addSource(productAndExpiryDate) { p ->
+            p.product.title?.let {
                 value = it
             }
         }
     }
 
     val expiryDate = MediatorLiveData<String>().apply {
-        addSource(productAndExpiryDate) { e ->
-            e.expiryDate.expiryDate.toString()?.let {
-                value = it
-            }
+        addSource(productAndExpiryDate) { p ->
+            value = "${application.resources.getString(R.string.expiry_date_text)}: " +
+                    "${ProductUtils.convertExpiryDateForUi(p.expiryDate.expiryDate)}"
         }
     }
 
-    // Read Bitmap from file by path
-    private suspend fun readBitmap(path: String): Bitmap {
-        return withContext(IO) {
-            BitmapFactory.decodeFile(path)
+    val daysLeft = MediatorLiveData<String>().apply {
+        addSource(productAndExpiryDate) { p ->
+            value = ProductUtils.buildTimeLeftText(p.expiryDate.expiryDate)
         }
     }
+
+    val daysLeftColor = MediatorLiveData<Int>().apply {
+        addSource(productAndExpiryDate) { p ->
+            value = ProductUtils.getTextLeftColor(p.expiryDate.expiryDate)
+        }
+    }
+
 }

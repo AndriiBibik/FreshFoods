@@ -88,21 +88,20 @@ class ProductAndExpiryDateAdapter(
             // when list - set expiry date
             if (itemViewType == VIEW_TYPE_LIST) {
                 expiryDate?.text =
-                    ProductShelfViewModel.convertExpiryDateForUi(item.expiryDate.expiryDate)
+                    ProductUtils.convertExpiryDateForUi(item.expiryDate.expiryDate)
             }
 
             //
             // for time left
-            val timeLeft =
-                ProductShelfViewModel.convertExpiryDateToTimeLeft(item.expiryDate.expiryDate)
-            val daysCount = (timeLeft / (1000 * 60 * 60 * 24)).toInt()
+            val expiryDate = item.expiryDate.expiryDate
+
             // set days left color based on daysLeft
-            val color = ProductUtils.getTextLeftColor(timeLeft)
+            val color = ProductUtils.getTextLeftColor(expiryDate)
             // set time left text color
             // and set text
             daysLeft.run {
                 setTextColor(color)
-                val daysLeftText = ProductUtils.buildTimeLeftText(timeLeft)
+                val daysLeftText = ProductUtils.buildTimeLeftText(expiryDate)
                 text = daysLeftText
             }
         }
@@ -140,7 +139,6 @@ class ProductAndExpiryDateAdapter(
             oldItem: ProductAndExpiryDate,
             newItem: ProductAndExpiryDate
         ): Boolean {
-            //TODO to take a look later how it is works. if ti is works right
             return oldItem == newItem
         }
     }

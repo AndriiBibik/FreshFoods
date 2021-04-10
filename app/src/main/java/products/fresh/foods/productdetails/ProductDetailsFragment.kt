@@ -51,14 +51,18 @@ class ProductDetailsFragment : Fragment() {
             binding.productImage.setImageBitmap(bitmap)
         })
         productDetailsViewModel.title.observe(viewLifecycleOwner, Observer { title ->
-            // set title
             binding.productTitle.text = title
 
         })
         productDetailsViewModel.expiryDate.observe(viewLifecycleOwner, Observer { expiryDate ->
             binding.productExpiryDate.text = expiryDate
         })
-        //TODO(to implement days left observer)
+        productDetailsViewModel.daysLeft.observe(viewLifecycleOwner, Observer { daysLeft ->
+            binding.productDaysLeft.text = daysLeft
+        })
+        productDetailsViewModel.daysLeftColor.observe(viewLifecycleOwner, Observer { color ->
+            binding.productDaysLeft.setTextColor(color)
+        })
 
         return binding.root
     }

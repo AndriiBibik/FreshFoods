@@ -43,6 +43,7 @@ import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabase
 import products.fresh.foods.databinding.FragmentProductsShelfBinding
 import products.fresh.foods.productshelf.ProductShelfViewModel.Companion.SPAN_ONE
+import products.fresh.foods.utils.ProductUtils
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -180,8 +181,6 @@ class ProductShelfFragment : Fragment() {
         //switch between grid/list mode
         binding.productListLayout.grid_list_switch_button.let { greedOrList ->
 
-            //TODO get grid list ic from ViewModel
-            // decide to display list in grid or list mode
             when (productShelfViewModel.isGrid) {
                 // grid
                 true -> {
@@ -192,6 +191,7 @@ class ProductShelfFragment : Fragment() {
                     greedOrList.setImageResource(R.drawable.ic_grid_on)
                 }
             }
+            productShelfViewModel.isGrid
 
             // listen clicks upon this switch imageView
             greedOrList.setOnClickListener { view ->
@@ -253,7 +253,7 @@ class ProductShelfFragment : Fragment() {
             takePicture()
         }
 
-        // observe changes to isImgageProcessing to show or disable progressBar
+        // observe changes to isImageProcessing to show or disable progressBar
         productShelfViewModel.isImageProcessing.observe(viewLifecycleOwner, Observer {
             when (it) {
                 true -> binding.enterProductLayout.image_progress_bar.visibility = View.VISIBLE
@@ -312,11 +312,6 @@ class ProductShelfFragment : Fragment() {
                         val fragmentWidth = binding.fragmentProductShelfContainer.width
                         // only when goes into full screen mode
                         if ((width != oldWidth) && (width == fragmentWidth)) {
-                            Log.v(
-                                "LOG_WIDTH",
-                                "$left $top $right $bottom $oldLeft $oldTop $oldRight $oldBottom"
-                            )
-                            Log.v("LOG_WIDTH", "$width")
 
                             gridLayoutManager?.apply {
                                 requestLayout()
@@ -386,7 +381,7 @@ class ProductShelfFragment : Fragment() {
         // add on positive button listener
         datePicker.addOnPositiveButtonClickListener { pickedDate ->
             // Date into String
-            val date = SimpleDateFormat(ProductShelfViewModel.DATE_REPRESENTATION_PATTERN).format(
+            val date = SimpleDateFormat(ProductUtils.DATE_REPRESENTATION_PATTERN).format(
                 Date(pickedDate)
             )
             // giving this value to ViewModel
