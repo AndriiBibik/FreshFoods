@@ -30,11 +30,6 @@ class ProductShelfViewModel(
     private val databaseDao: ProductDatabaseDao, application: Application
 ) : AndroidViewModel(application) {
 
-    class ProductAndExpiryDateListener(val clickListener: (expiryDateId: Long) -> Unit) {
-        fun onClick(productAndExpiryDate: ProductAndExpiryDate)
-                = clickListener(productAndExpiryDate.expiryDate.expiryDateId)
-    }
-
     companion object {
         const val APP_SHARED_PREFERENCES = "app_shared_preferences"
         const val SPINNER_ID_KEY = "spinner_id"
@@ -50,16 +45,18 @@ class ProductShelfViewModel(
         const val DATE_DATABASE_PATTERN = "yyyyMMdd"
         private const val IMAGE_QUALITY = 90
         const val SPAN_ONE = 1
+
         // to convert database int representation of a date into ui representation
         fun convertExpiryDateForUi(expiryDate: Int): String? {
             return SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString())?.let {
                 SimpleDateFormat(DATE_REPRESENTATION_PATTERN).format(it)
             }
         }
+
         // to convert expiryDate database Int value into time left in milliseconds
         fun convertExpiryDateToTimeLeft(expiryDate: Int): Long {
-            return  (SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString()).time
-                             + (24*60*60*1000-1) - Date().time)
+            return (SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString()).time
+                    + (24 * 60 * 60 * 1000 - 1) - Date().time)
         }
     }
 
@@ -77,17 +74,13 @@ class ProductShelfViewModel(
         sharedPreferences.edit().putInt(SPINNER_ID_KEY, pos).apply()
     }
 
-    // list of ProductsAndExpiryDates
-    var list = databaseDao.getAllProductsAndExpiryDatesDesc()
     // actual sorted list that we going to use. This list is based on "list" above and "sortType"
     val sortedList = Transformations.switchMap(sortSpinnerPos) { pos ->
-        Transformations.map(list) {
-            when(pos) {
-                SPINNER_ID_TIME_LEFT_ASC -> it.sortedBy { p ->  p.expiryDate.expiryDate}//0
-                SPINNER_ID_TIME_LEFT_DESC -> it.sortedByDescending { p ->  p.expiryDate.expiryDate}//1
-                SPINNER_ID_TIME_ADDED_ASC -> it.sortedBy { p ->  p.product.productId}//3
-                else -> it//2
-            }
+        when (pos) {
+            SPINNER_ID_TIME_LEFT_ASC -> databaseDao.getAllProductsAndExpiryDatesByTimeLeftAsc()//0
+            SPINNER_ID_TIME_LEFT_DESC -> databaseDao.getAllProductsAndExpiryDatesByTimeLeftDesc()//1
+            SPINNER_ID_TIME_ADDED_ASC -> databaseDao.getAllProductsAndExpiryDatesDesc()//3
+            else -> databaseDao.getAllProductsAndExpiryDates() //2
         }
     }
 
@@ -133,17 +126,33 @@ class ProductShelfViewModel(
             sharedPreferences.edit().putBoolean(IS_GRiD_KEY, isGrid).apply()
         }
 
+    // Sort list depending on sortType position in a background thread to not block the Main thread
+    private suspend fun sortList(
+        list: List<ProductAndExpiryDate>,
+        pos: Int
+    ): List<ProductAndExpiryDate> {
+        return withContext(Dispatchers.Default) {
+            when (pos) {
+                SPINNER_ID_TIME_LEFT_ASC -> list.sortedBy { p -> p.expiryDate.expiryDate }//0
+                SPINNER_ID_TIME_LEFT_DESC -> list.sortedByDescending { p -> p.expiryDate.expiryDate }//1
+                SPINNER_ID_TIME_ADDED_ASC -> list.sortedBy { p -> p.product.productId }//3
+                else -> list//2
+            }
+        }
+    }
+
     // to calculate number of spans(columns)
     private fun calculateSpanCount(containerWidth: Int): Int {
         val columnWidth = getApplication<Application>().resources.let {
             (it.getDimension(R.dimen.products_grid_item_image_width)
-            + it.getDimension(R.dimen.product_grid_item_margin) * 2).toInt()
+                    + it.getDimension(R.dimen.product_grid_item_margin) * 2).toInt()
         }
         return containerWidth / columnWidth
     }
+
     // get number of spans
     fun getNumberOfSpans(containerWidth: Int): Int {
-        return when(isGrid) {
+        return when (isGrid) {
             true -> calculateSpanCount(containerWidth)
             false -> SPAN_ONE
         }
@@ -300,7 +309,8 @@ class ProductShelfViewModel(
     fun createImageFile(): File {
         // Create an image file name
         val imageName: String = generateImageName()
-        val storageDir: File? = getApplication<Application>().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val storageDir: File? =
+            getApplication<Application>().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
 
         return File.createTempFile(
             imageName, /* prefix */
@@ -335,7 +345,7 @@ class ProductShelfViewModel(
             }
 
             val productId = _productTitle.value?.let {
-                databaseDao.insert( Product(itemImagePath, thumbnailImagePath, it) )
+                databaseDao.insert(Product(itemImagePath, thumbnailImagePath, it))
             }
 
             productId?.let { productId ->
@@ -355,7 +365,7 @@ class ProductShelfViewModel(
 
     // save bitmap into a file
     private fun saveBitmapIntoFile(bitmap: Bitmap, prefix: String, suffix: String, quality: Int)
-    : String {
+            : String {
 
         // image external directory
         val directory = getApplication<Application>()

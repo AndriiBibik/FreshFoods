@@ -12,8 +12,10 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.*
 import products.fresh.foods.R
 import products.fresh.foods.database.ProductAndExpiryDate
+import products.fresh.foods.utils.ProductUtils
 
 interface OnItemClickListener {
     fun onItemClick(item: ProductAndExpiryDate)
@@ -72,10 +74,15 @@ class ProductAndExpiryDateAdapter(
                 clickListener.onItemClick(item)
             }
 
-            //TODO(to run this on the background thread)
-            val thumbnail = BitmapFactory.decodeFile(item.product.thumbnail)
-            // set image
-            image.setImageBitmap(thumbnail)
+            // perform image reading from file on a background
+            CoroutineScope(Dispatchers.IO).launch {
+                val thumbnail = BitmapFactory.decodeFile(item.product.thumbnail)
+                withContext(Dispatchers.Main) {
+                    // set image
+                    image.setImageBitmap(thumbnail)
+                }
+            }
+
             // set title
             title.text = item.product.title
             // when list - set expiry date
@@ -86,58 +93,18 @@ class ProductAndExpiryDateAdapter(
 
             //
             // for time left
-            val timeLeft = ProductShelfViewModel.convertExpiryDateToTimeLeft(item.expiryDate.expiryDate)
+            val timeLeft =
+                ProductShelfViewModel.convertExpiryDateToTimeLeft(item.expiryDate.expiryDate)
             val daysCount = (timeLeft / (1000 * 60 * 60 * 24)).toInt()
             // set days left color based on daysLeft
-            Log.v("LOG_W", "time left: $timeLeft")
-            Log.v("LOG_W", "days cont: $daysCount")
-            val colorsArray =
-                itemView.context.resources.getStringArray(R.array.left_days_indicators)
-            // getting right color array index
-            val colorIndex = daysCount.let { daysN ->
-                when {
-                    daysN <= 0 -> {
-                        when {
-                            timeLeft < 0 -> 7
-                            else -> 0
-                        }
-                    }
-                    daysN in 1..5 -> daysN
-                    else -> 6
-                }
-            }
+            val color = ProductUtils.getTextLeftColor(timeLeft)
             // set time left text color
             // and set text
             daysLeft.run {
-                setTextColor(Color.parseColor(colorsArray[colorIndex]))
-                when (daysCount) {
-                    0 -> {
-                        val hours = timeLeft / (60 * 60 * 1000)
-                        val minutes = (timeLeft / (60 * 1000)) % 60
-                        itemView.context.resources.let {
-                            text = when {
-                                timeLeft < 0 -> String.format(
-                                    "-%02d${it.getString(R.string.hours_shortcut)}:%02d${it.getString(R.string.minutes_shortcut)}",
-                                    Math.abs(hours),
-                                    Math.abs(minutes)
-                                )
-                                else -> String.format(
-                                    "%02d${it.getString(R.string.hours_shortcut)}:%02d${it.getString(R.string.minutes_shortcut)}",
-                                    hours,
-                                    minutes
-                                )
-                            }
-                        }
-                    }
-                    else -> text = when {
-                        daysCount < 0 -> "${itemView.context.resources.getString(R.string.expired_shortcut)}$daysCount ${itemView.context.resources.getString(R.string.days_shortcut)}"
-                        else -> "$daysCount${itemView.context.resources.getString(R.string.days_left_text)}"
-                    }
-
-                }
-
+                setTextColor(color)
+                val daysLeftText = ProductUtils.buildTimeLeftText(timeLeft)
+                text = daysLeftText
             }
-
         }
     }
 

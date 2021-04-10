@@ -19,6 +19,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.doOnLayout
@@ -36,6 +37,7 @@ import com.google.android.material.textfield.TextInputLayout
 import kotlinx.android.synthetic.main.layout_enter_product.view.*
 import kotlinx.android.synthetic.main.layout_product_list.view.*
 import kotlinx.coroutines.delay
+import products.fresh.foods.MainActivity
 import products.fresh.foods.R
 import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabase
@@ -105,9 +107,7 @@ class ProductShelfFragment : Fragment() {
     ): View? {
 
         // set ActionBar title
-        (activity as AppCompatActivity).supportActionBar?.apply {
-            title = getString(R.string.product_shelf_fragment_title)
-        }
+        (activity as MainActivity).setActionBarTitle(getString(R.string.product_shelf_fragment_title))
 
         // Get a reference to the binding object and inflate the fragment views.
         binding = DataBindingUtil.inflate(
@@ -139,6 +139,8 @@ class ProductShelfFragment : Fragment() {
             productAdapter = ProductAndExpiryDateAdapter(gridLayoutManager,
                 object : OnItemClickListener {
                     override fun onItemClick(item: ProductAndExpiryDate) {
+                        // change activity title before fragment even loads
+                        (activity as MainActivity).setActionBarTitle("Product Details")
                         // navigate to details page
                         val action = ProductShelfFragmentDirections
                             .actionProductShelfFragmentToProductDetailsFragment(item.expiryDate.expiryDateId)

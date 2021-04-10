@@ -22,23 +22,25 @@ interface ProductDatabaseDao {
     @Update
     suspend fun update(expiryDate: ExpiryDate)
 
-    @Query("SELECT * FROM products_table WHERE product_id = :id")
-    suspend fun getProductAndExpiryDate(id: Long): ProductAndExpiryDate?
+    @Query("SELECT * FROM expiry_date_table WHERE expiry_date_id = :id")
+    fun getProductAndExpiryDate(id: Long): LiveData<ProductAndExpiryDate>
 
-    /* select all products as it is */
-    @Query("SELECT * FROM products_table")
-    fun getAllProductsAndExpiryDates() : List<ProductAndExpiryDate>
+    //position 0 - time left asc
+    @Query("SELECT * FROM expiry_date_table ORDER BY expiry_date ASC")
+    fun getAllProductsAndExpiryDatesByTimeLeftAsc(): LiveData<List<ProductAndExpiryDate>>
 
-    /* select all products desc by id(as well as by adding time) */
-    @Query("SELECT * FROM products_table ORDER BY product_id DESC")
+    //position 1 - time left desc
+    @Query("SELECT * FROM expiry_date_table ORDER BY expiry_date DESC")
+    fun getAllProductsAndExpiryDatesByTimeLeftDesc(): LiveData<List<ProductAndExpiryDate>>
+
+    //position 2 - time added(id) desc
+    @Query("SELECT * FROM expiry_date_table ORDER BY expiry_date_id DESC")
     fun getAllProductsAndExpiryDatesDesc() : LiveData<List<ProductAndExpiryDate>>
 
-//    /* select all products sorted by expiry date desc */
-//    @Query("SELECT * FROM products_table ORDER BY expiry_date DESC")
-//    fun getAllProductsAndExpiryDatesDescByExpiryDate() : List<ProductAndExpiryDate>
-//
-//    /* select all products sorted by expiry date asc */
-//    @Query("SELECT * FROM products_table ORDER BY expiry_date ASC")
-//    fun getAllProductsAndExpiryDatesAscByExpiryDate() : List<ProductAndExpiryDate>
+    //position 3 - time added(id) asc
+    @Query("SELECT * FROM expiry_date_table")
+    fun getAllProductsAndExpiryDates(): LiveData<List<ProductAndExpiryDate>>
+
+
 
 }
