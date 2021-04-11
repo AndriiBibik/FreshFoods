@@ -67,5 +67,4 @@ class ProductDetailsViewModel(
             value = ProductUtils.getTextLeftColor(p.expiryDate.expiryDate)
         }
     }
-
 }

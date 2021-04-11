@@ -2,6 +2,9 @@ package products.fresh.foods.productshelf
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlarmManager
+import android.app.Application
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -21,6 +24,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.doOnLayout
 import androidx.databinding.DataBindingUtil
@@ -42,6 +46,7 @@ import products.fresh.foods.R
 import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabase
 import products.fresh.foods.databinding.FragmentProductsShelfBinding
+import products.fresh.foods.notifications.NotificationReceiver
 import products.fresh.foods.productshelf.ProductShelfViewModel.Companion.SPAN_ONE
 import products.fresh.foods.utils.ProductUtils
 import java.io.File
@@ -98,7 +103,8 @@ class ProductShelfFragment : Fragment() {
 
             if (expiryDateText.isNotEmpty())
                 showExpiryDateCorrectIc()
-
+            else
+                removeExpiryDateCorrectIc()
         }
     }
 
@@ -149,6 +155,17 @@ class ProductShelfFragment : Fragment() {
                     }
                 })
 
+            // observe when we can clear title and expiryDate when we start putting this info into database
+            productShelfViewModel.areTitleExpiryDateNoNeeded.observe(viewLifecycleOwner, Observer { areTitleExpDateGrabbed ->
+                if (areTitleExpDateGrabbed) {
+                    // clear text from title field
+                    binding.enterProductLayout.enter_product_title_edit_text.text?.clear()
+                    // clear text from expiryDate text, reset value in the ViewModel
+                    binding.enterProductLayout.date_picker_edit_field.text?.clear()
+                    productShelfViewModel?.resetExpiryDate()
+                }
+            })
+
             // this observer will be triggered: 1. list goes from null to {some database data};
             // 2. if ViewModel loads {database data} first (before doOnLayout triggered)
             // That is GOOD. TESTED...
@@ -175,7 +192,11 @@ class ProductShelfFragment : Fragment() {
 
         // listener for "put product" button
         binding.enterProductLayout.put_into_database_button.setOnClickListener {
+            // TODO(this is for test only and should be hardcore modified)
+            schedulePendingNotification()
             productShelfViewModel.onPutProduct()
+            // reset image immediately
+            binding.enterProductLayout.product_image.setImageResource(R.drawable.ic_carrot_take_picture)
         }
 
         //switch between grid/list mode
@@ -262,8 +283,12 @@ class ProductShelfFragment : Fragment() {
         })
 
         // observe bitmap changes
-        productShelfViewModel.productImages.observe(viewLifecycleOwner, Observer {
-            binding.enterProductLayout.product_image.setImageBitmap(it.listThumbnail)
+        productShelfViewModel.productImages.observe(viewLifecycleOwner, Observer { imageBitmaps ->
+            if (imageBitmaps != null) {
+                imageBitmaps.listThumbnail?.let { thumbnail ->
+                    binding.enterProductLayout.product_image.setImageBitmap(thumbnail)
+                }
+            }
         })
 
         // navigate to extended product list fragment by clicking "extend list" button
@@ -373,6 +398,17 @@ class ProductShelfFragment : Fragment() {
         return binding.root
     }
 
+    // to schedule notification for the future, n days before product expires
+    private fun schedulePendingNotification() {
+        val alarmManager = requireActivity().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(requireActivity(), NotificationReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(requireActivity(), 1, intent, 0)
+        // TODO(set this for exact time)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, Date().time + 10000, pendingIntent)
+        }
+    }
+
     private fun showDatePicker() {
 
         // build
@@ -428,6 +464,11 @@ class ProductShelfFragment : Fragment() {
     // remove "correct" ic from title/description
     private fun removeTitleCorrectIc() {
         binding.enterProductLayout.enter_product_text_field.endIconMode =
+            TextInputLayout.END_ICON_NONE
+    }
+    // remove "correct" ic from expiry date
+    private fun removeExpiryDateCorrectIc() {
+        binding.enterProductLayout.expiry_date_text_field.endIconMode =
             TextInputLayout.END_ICON_NONE
     }
 

@@ -1,5 +1,6 @@
 package products.fresh.foods.productshelf
 
+import android.app.AlarmManager
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
@@ -9,6 +10,7 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.media.ThumbnailUtils
 import android.os.Environment
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -89,8 +91,9 @@ class ProductShelfViewModel(
     private val _expiryDate = MutableLiveData<String>()
     val expiryDate: LiveData<String>
         get() = _expiryDate
+    fun resetExpiryDate() { _expiryDate.value = null }
 
-    //
+    // current photo path
     private lateinit var currentPhotoPath: String
 
     // list in full screen or not
@@ -110,20 +113,11 @@ class ProductShelfViewModel(
             sharedPreferences.edit().putBoolean(IS_GRiD_KEY, isGrid).apply()
         }
 
-    // Sort list depending on sortType position in a background thread to not block the Main thread
-    private suspend fun sortList(
-        list: List<ProductAndExpiryDate>,
-        pos: Int
-    ): List<ProductAndExpiryDate> {
-        return withContext(Dispatchers.Default) {
-            when (pos) {
-                SPINNER_ID_TIME_LEFT_ASC -> list.sortedBy { p -> p.expiryDate.expiryDate }//0
-                SPINNER_ID_TIME_LEFT_DESC -> list.sortedByDescending { p -> p.expiryDate.expiryDate }//1
-                SPINNER_ID_TIME_ADDED_ASC -> list.sortedBy { p -> p.product.productId }//3
-                else -> list//2
-            }
-        }
-    }
+    // to indicate when title and expiry date is "grabbed" for further processing to put product into
+    // the database
+    private val _areTitleExpiryDateNoNeeded = MutableLiveData<Boolean>()
+    val areTitleExpiryDateNoNeeded: LiveData<Boolean>
+        get() = _areTitleExpiryDateNoNeeded
 
     // to calculate number of spans(columns)
     private fun calculateSpanCount(containerWidth: Int): Int {
@@ -303,7 +297,16 @@ class ProductShelfViewModel(
 
     // for "put product" button in fragment
     fun onPutProduct() {
-        CoroutineScope(Dispatchers.IO).launch {
+        uiScope.launch {
+
+            // "grab title and expiry date for further processing"
+            val title = _productTitle.value
+            val expiryDate = _expiryDate.value?.let { expiryDate ->
+                ProductUtils.convertExpiryDateForDatabase(expiryDate)
+            }
+            // now above values in the Ui and in ViewModel could be cleared, so..
+            _areTitleExpiryDateNoNeeded.value = true
+            _areTitleExpiryDateNoNeeded.value = false
 
             // same prefix to images files names
             val prefix = generateImageName()
@@ -320,49 +323,61 @@ class ProductShelfViewModel(
                     saveBitmapIntoFile(it, prefix, SUFFIX_THUMBNAIL_IMAGE, IMAGE_QUALITY)
                 }
             }
+            // now images saved, so i can reset mutable live data value for product images
+            _productImages.value = null
 
-            val productId = _productTitle.value?.let {
-                databaseDao.insert(Product(itemImagePath, thumbnailImagePath, it))
+            val productId = title?.let { title ->
+                insertProduct(Product(itemImagePath, thumbnailImagePath, title))
             }
 
             productId?.let { productId ->
                 if (productId != -1L) {
-                    val expiryDate = _expiryDate.value?.let {
-                        val date = SimpleDateFormat(ProductUtils.DATE_REPRESENTATION_PATTERN)
-                            .parse(it)
-                        SimpleDateFormat(ProductUtils.DATE_DATABASE_PATTERN).format(date).toIntOrNull()
-                    }
                     expiryDate?.let { expiryDate ->
-                        databaseDao.insert(ExpiryDate(productId, expiryDate))
+                        insertExpiryDate(ExpiryDate(productId, expiryDate))
                     }
                 }
             }
         }
     }
 
+    // suspend fun to insert product into database
+    private suspend fun insertProduct(product: Product): Long {
+        return withContext(Dispatchers.IO) {
+            databaseDao.insert(product)
+        }
+    }
+    // suspend fun to insert expiry date into database
+    private suspend fun insertExpiryDate(expiryDate: ExpiryDate) {
+        withContext(Dispatchers.IO) {
+            databaseDao.insert(expiryDate)
+        }
+    }
+
     // save bitmap into a file
-    private fun saveBitmapIntoFile(bitmap: Bitmap, prefix: String, suffix: String, quality: Int)
+    private suspend fun saveBitmapIntoFile(bitmap: Bitmap, prefix: String, suffix: String, quality: Int)
             : String {
 
-        // image external directory
-        val directory = getApplication<Application>()
-            .getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            .toString()
+        return withContext(Dispatchers.IO) {
+            // image external directory
+            val directory = getApplication<Application>()
+                .getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+                .toString()
 
-        // image file
-        val imageFile = File(directory, "$prefix$suffix.jpg")
+            // image file
+            val imageFile = File(directory, "$prefix$suffix.jpg")
 
-        // file output stream
-        val outputStream = FileOutputStream(imageFile)
+            // file output stream
+            val outputStream = FileOutputStream(imageFile)
 
-        // actual saving of a file
-        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+            // actual saving of a file
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
 
-        // closing stream
-        outputStream.close()
+            // closing stream
+            outputStream.close()
 
-        // return newly created file path
-        return imageFile.absolutePath
+            // return newly created file path
+            imageFile.absolutePath
+        }
     }
 
     fun enterExpiryDate(date: String) {
@@ -378,7 +393,7 @@ class ProductShelfViewModel(
     }
 
     // getting/generating image name based on current time
-    fun generateImageName() = SimpleDateFormat("yyyyMMddHHmmssS").format(Date())
+    private fun generateImageName() = SimpleDateFormat("yyyyMMddHHmmssS").format(Date())
 
     override fun onCleared() {
         super.onCleared()

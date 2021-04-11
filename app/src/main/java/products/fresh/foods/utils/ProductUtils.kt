@@ -23,8 +23,14 @@ class ProductUtils {
             }
         }
 
+        // to convert UI expiryDate String representation into database representation
+        fun convertExpiryDateForDatabase(expiryDate: String): Int? {
+            val date = SimpleDateFormat(ProductUtils.DATE_REPRESENTATION_PATTERN).parse(expiryDate)
+            return SimpleDateFormat(ProductUtils.DATE_DATABASE_PATTERN).format(date).toIntOrNull()
+        }
+
         // to convert expiryDate database Int value into time left in milliseconds
-        fun convertExpiryDateToTimeLeft(expiryDate: Int): Long {
+        private fun convertExpiryDateToTimeLeft(expiryDate: Int): Long {
             return (SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString()).time
                     + (24 * 60 * 60 * 1000 - 1) - Date().time)
         }
