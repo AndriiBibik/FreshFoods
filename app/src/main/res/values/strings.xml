@@ -9,6 +9,8 @@
     <string name="expiry_date_text">Expiry date</string>
     <string name="put_button_text">put</string>
     <string name="required_helper_text">* Required</string>
+    <string name="notify_hint">Notify!</string>
+
     <!--products list(recyclerview) layout-->
     <string name="sort_text">Sort:</string>
     <!--products list/grid(recyclerview) item-->

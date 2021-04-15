@@ -29,10 +29,18 @@ class ProductUtils {
             return SimpleDateFormat(ProductUtils.DATE_DATABASE_PATTERN).format(date).toIntOrNull()
         }
 
+        fun convertExpiryDateIntoMillis(expiryDate: Int): Long {
+            return SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString()).time + 24 * 60 * 60 * 1000 - 1
+        }
+
         // to convert expiryDate database Int value into time left in milliseconds
-        private fun convertExpiryDateToTimeLeft(expiryDate: Int): Long {
+        fun convertExpiryDateToTimeLeft(expiryDate: Int): Long {
             return (SimpleDateFormat(DATE_DATABASE_PATTERN).parse(expiryDate.toString()).time
                     + (24 * 60 * 60 * 1000 - 1) - Date().time)
+        }
+
+        fun convertTimeLeftToFullDaysLeft(timeLeft: Long): Int {
+            return (timeLeft / (1000 * 60 * 60 * 24)).toInt()
         }
 
         fun getTextLeftColor(expiryDate: Int): Int {
@@ -68,7 +76,7 @@ class ProductUtils {
 
             val timeLeft = convertExpiryDateToTimeLeft(expiryDate)
 
-            val daysCount = (timeLeft / (1000 * 60 * 60 * 24)).toInt()
+            val daysCount = convertTimeLeftToFullDaysLeft(timeLeft)
 
             return when (daysCount) {
                 0 -> {
@@ -93,6 +101,17 @@ class ProductUtils {
                 }
             }
         }
+
+        // milliseconds into number of days
+        fun millisecondsIntoDays(milliseconds: Long) = (milliseconds / (24*60*60*1000)).toInt()
+
+        // milliseconds into number of hour (minus num of days)
+        fun millisecondsIntoHours(milliseconds: Long) = (milliseconds / (60*60*1000)) - (millisecondsIntoDays(milliseconds)*24)
+
+        //TODO test?
+        // milliseconds into number of minutes (minus number of hours)
+        fun millisecondsIntoMinutes(milliseconds: Long)
+                = (milliseconds / (60*1000)) - (millisecondsIntoDays(milliseconds)*24*60 + millisecondsIntoHours(milliseconds)*60)
 
         // to read Bitmap from file in the background
         suspend fun readBitmapInIO(path: String): Bitmap? {

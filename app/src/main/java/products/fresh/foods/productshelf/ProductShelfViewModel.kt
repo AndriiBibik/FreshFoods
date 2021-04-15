@@ -2,13 +2,16 @@ package products.fresh.foods.productshelf
 
 import android.app.AlarmManager
 import android.app.Application
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.media.ThumbnailUtils
+import android.os.Build
 import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -21,6 +24,8 @@ import products.fresh.foods.database.ExpiryDate
 import products.fresh.foods.database.Product
 import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabaseDao
+import products.fresh.foods.notifications.NotificationConstants
+import products.fresh.foods.notifications.NotificationReceiver
 import products.fresh.foods.utils.ProductUtils
 import java.io.File
 import java.io.FileOutputStream
@@ -118,6 +123,9 @@ class ProductShelfViewModel(
     private val _areTitleExpiryDateNoNeeded = MutableLiveData<Boolean>()
     val areTitleExpiryDateNoNeeded: LiveData<Boolean>
         get() = _areTitleExpiryDateNoNeeded
+
+    // to notify if user wants to
+    var toNotify = true
 
     // to calculate number of spans(columns)
     private fun calculateSpanCount(containerWidth: Int): Int {
@@ -333,11 +341,79 @@ class ProductShelfViewModel(
             productId?.let { productId ->
                 if (productId != -1L) {
                     expiryDate?.let { expiryDate ->
-                        insertExpiryDate(ExpiryDate(productId, expiryDate))
+                        val id = insertExpiryDate(ExpiryDate(productId, expiryDate))
+                        if (id != -1L) {
+                            // schedule notifications here
+                            if (toNotify) {
+                                schedulePendingNotification(title, expiryDate, itemImagePath, id)
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    // to schedule notification for the future, n days before product expires
+    private fun schedulePendingNotification(title: String, expiryDate: Int, imagePath: String?, expiryDateId: Long) {
+        val application = getApplication<Application>()
+        val alarmManager = application.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(application, NotificationReceiver::class.java)
+        // put product title and expiry date into intent to display this info in the notification
+        intent.putExtra(NotificationConstants.TITLE_EXTRAS_ID, title)
+        intent.putExtra(NotificationConstants.EXPIRY_DATE_EXTRAS_ID, expiryDate)
+        intent.putExtra(NotificationConstants.IMAGE_PATH_EXTRAS_ID, imagePath)
+        intent.putExtra(NotificationConstants.EXPIRY_DATE_ID_EXTRAS_ID, expiryDateId)
+        // TODO to think what request code to add to separate notifications for different products
+        // TODO to work with requestCode below to send multiple notif. for multiple products but update notif if it is same product
+        val pendingIntent = PendingIntent.getBroadcast(application, expiryDateId.toInt(), intent, 0)
+        // TODO(set this for exact time)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // TODO tp test all that stuff
+            val daysBefore = mutableListOf<Int>().apply {
+                add(5)
+                add(3)
+                add(2)
+                add(1)
+            }
+            val notificationTimes = getNotificationTimes(9, 21, expiryDate, daysBefore)
+//            notificationTimes.forEach { notificationTime ->
+            //TODO notification times are good! now make this work correctly and test
+            val time = Date().time
+            for(i in 1..2) {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, time + i*5000, pendingIntent)
+            }
+
+//            }
+        }
+    }
+
+    // TODO to think where to put this function
+    fun getNotificationTimes(
+        workingHourStart: Int,
+        workingHourEnd: Int,
+        expiryDate: Int,
+        daysBefore: List<Int>
+    ): List<Long> {
+
+        val timeLeft = ProductUtils.convertExpiryDateToTimeLeft(expiryDate)
+
+        val fullDaysLeft = ProductUtils.convertTimeLeftToFullDaysLeft(timeLeft)
+
+        val notificationTimes = mutableListOf<Long>()
+
+        daysBefore.forEach {
+            if (it < fullDaysLeft) {
+
+                // daysBefore + some n of hour into the future to show in the morning
+                // TODO this logic can be reviewed in the future
+                val notificationTime =
+                    ProductUtils.convertExpiryDateIntoMillis(expiryDate) + 1 - it * 24 * 60 * 60 * 1000 + workingHourStart * 60 * 60 * 1000
+
+                notificationTimes.add(notificationTime)
+            }
+        }
+        return notificationTimes
     }
 
     // suspend fun to insert product into database
@@ -347,8 +423,8 @@ class ProductShelfViewModel(
         }
     }
     // suspend fun to insert expiry date into database
-    private suspend fun insertExpiryDate(expiryDate: ExpiryDate) {
-        withContext(Dispatchers.IO) {
+    private suspend fun insertExpiryDate(expiryDate: ExpiryDate): Long {
+        return withContext(Dispatchers.IO) {
             databaseDao.insert(expiryDate)
         }
     }
