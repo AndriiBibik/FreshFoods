@@ -8,21 +8,24 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.media.ThumbnailUtils
 import android.os.Build
 import android.os.Environment
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.*
 import products.fresh.foods.R
 import products.fresh.foods.database.ExpiryDate
 import products.fresh.foods.database.Product
-import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabaseDao
 import products.fresh.foods.notifications.NotificationConstants
 import products.fresh.foods.notifications.NotificationReceiver
@@ -126,6 +129,45 @@ class ProductShelfViewModel(
 
     // to notify if user wants to
     var toNotify = true
+
+    // item touch helper callback to remove product from db when swipe
+    val itemTouchHelperCallback =
+        object: ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.RIGHT or
+                    ItemTouchHelper.LEFT) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                super.onChildDraw(
+                    c,
+                    recyclerView,
+                    viewHolder,
+                    dX,
+                    dY,
+                    actionState,
+                    isCurrentlyActive
+                )
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                Toast.makeText(getApplication(), "swiped!", Toast.LENGTH_LONG).show()
+            }
+        }
 
     // to calculate number of spans(columns)
     private fun calculateSpanCount(containerWidth: Int): Int {

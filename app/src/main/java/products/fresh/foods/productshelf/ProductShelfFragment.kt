@@ -28,6 +28,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointForward
 import com.google.android.material.datepicker.MaterialDatePicker
@@ -138,6 +139,9 @@ class ProductShelfFragment : Fragment() {
         binding.enterProductLayout.notify_or_not_checkbox.setOnCheckedChangeListener { _, isChecked ->
             productShelfViewModel.toNotify = isChecked
         }
+
+        // attach ItemTouchHelper to RecyclerView
+        ItemTouchHelper(productShelfViewModel.itemTouchHelperCallback).attachToRecyclerView(binding.productListLayout.products_recycler_view)
 
         // init adapter with GridLayoutManager when layout width is available
         binding.productListLayout.recycler_view_container.doOnLayout {
