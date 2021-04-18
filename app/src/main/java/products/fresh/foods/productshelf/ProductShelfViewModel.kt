@@ -176,6 +176,7 @@ class ProductShelfViewModel(
                 val ed = sortedList.value?.get(pos)?.expiryDate?.let {
                     uiScope.launch {
                         delete(it)
+                        //TODO delete this Toast and Clear AlarmManager notifications for this expiry date
                         Toast.makeText(application, it.toString(), Toast.LENGTH_LONG).show()
                     }
                 }
