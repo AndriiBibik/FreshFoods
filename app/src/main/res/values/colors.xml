@@ -6,6 +6,9 @@
     <color name="colorPrimaryText">#212121</color>
     <color name="colorSecondaryText">#616161</color>
 
+    <!--recycler view item background when swipe to delete-->
+    <color name="itemBackground">#FF0000</color>
+
     <!--main activity-->
     <color name="ok_color">#41c300</color>
 

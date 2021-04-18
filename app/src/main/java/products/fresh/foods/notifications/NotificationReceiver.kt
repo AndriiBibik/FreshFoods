@@ -22,6 +22,8 @@ class NotificationReceiver: BroadcastReceiver() {
                 // initializing notification manager
                 notificationManager = NotificationManagerCompat.from(context)
 
+                val res = context.resources
+
                 val productTitle = intent.getStringExtra(NotificationConstants.TITLE_EXTRAS_ID)
                 val expiryDate = intent.getIntExtra(NotificationConstants.EXPIRY_DATE_EXTRAS_ID, -1)
                 val itemImagePath = intent.getStringExtra(NotificationConstants.IMAGE_PATH_EXTRAS_ID)
@@ -37,12 +39,17 @@ class NotificationReceiver: BroadcastReceiver() {
                             val hoursN = ProductUtils.millisecondsIntoHours(timeLeft)
                             val minN = ProductUtils.millisecondsIntoMinutes(timeLeft)
                             // TODO to use later string resources instead of hardcoded text
-                            val timeLeftText = String.format("%d d %02dh:%02dmin to eat", daysN, hoursN, minN)
+                            val timeLeftText = String.format(
+                                "%d ${res.getString(R.string.days_shortcut)} " +
+                                "%02d${res.getString(R.string.hours_shortcut)} " +
+                                "%02d${res.getString(R.string.minutes_shortcut)} " +
+                                "${res.getString(R.string.to_consume_text)}", daysN, hoursN, minN
+                            )
                             // TODO try to change contentTExt color to appropriate one
                             setContentTitle(timeLeftText)
                         }
                         if (itemImagePath != null) {
-                            val density = context.resources.displayMetrics.density
+                            val density = res.displayMetrics.density
                             val size = when {
                                 density <= 0.75f -> 48
                                 density == 1.0f -> 64

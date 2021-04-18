@@ -84,6 +84,8 @@ dependencies {
     // RecyclerView
     def recyclerview_version = "1.1.0"
     implementation "androidx.recyclerview:recyclerview:$recyclerview_version"
-//    // For control over item selection of both touch and mouse driven selection
-//    implementation "androidx.recyclerview:recyclerview-selection:$recyclerview_version"
+
+    // RecyclerView Swipe Decorator
+    def swipe_decorator_version = "1.2.3"
+    implementation "it.xabaras.android:recyclerview-swipedecorator:$swipe_decorator_version"
 }

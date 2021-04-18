@@ -1,6 +1,7 @@
 package products.fresh.foods
 
 import android.app.Application
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
@@ -22,10 +23,10 @@ class GoodFoodApp : Application() {
         if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Save this product!",
+                resources.getString(R.string.notifications_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT
             )
-            channel.description = "This is notification channel"
+            channel.description = resources.getString(R.string.notifications_channel_description)
 
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)

@@ -22,6 +22,10 @@ interface ProductDatabaseDao {
     @Update
     suspend fun update(expiryDate: ExpiryDate)
 
+    //delete expiry date
+    @Delete
+    suspend fun delete(expiryDate: ExpiryDate)
+
     @Query("SELECT * FROM expiry_date_table WHERE expiry_date_id = :id")
     fun getProductAndExpiryDate(id: Long): LiveData<ProductAndExpiryDate>
 
@@ -40,7 +44,5 @@ interface ProductDatabaseDao {
     //position 3 - time added(id) asc
     @Query("SELECT * FROM expiry_date_table")
     fun getAllProductsAndExpiryDates(): LiveData<List<ProductAndExpiryDate>>
-
-
 
 }

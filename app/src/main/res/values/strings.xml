@@ -19,6 +19,9 @@
     <string name="days_shortcut">d</string>
     <string name="hours_shortcut">h</string>
     <string name="minutes_shortcut">min</string>
+    <!--to consume text in a notification-->
+    <string name="to_consume_text">to consume</string>
+    <string name="delete_text_in_item">Remove</string>
 
     <!--sort options for products list-->
     <string name="time_left_asc">time left</string>
@@ -37,5 +40,9 @@
         <item>false</item>
         <item>true</item>
     </string-array>
+
+    <!--notifications-->
+    <string name="notifications_channel_name">\"time left to consume a product\"</string>
+    <string name="notifications_channel_description">This is notifications channel</string>
 
 </resources>

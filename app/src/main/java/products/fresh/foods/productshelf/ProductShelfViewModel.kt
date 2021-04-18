@@ -15,13 +15,16 @@ import android.media.ThumbnailUtils
 import android.os.Build
 import android.os.Environment
 import android.util.Log
+import android.util.TypedValue
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 import kotlinx.coroutines.*
 import products.fresh.foods.R
 import products.fresh.foods.database.ExpiryDate
@@ -144,30 +147,47 @@ class ProductShelfViewModel(
                 return false
             }
 
-            override fun onChildDraw(
-                c: Canvas,
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                dX: Float,
-                dY: Float,
-                actionState: Int,
-                isCurrentlyActive: Boolean
-            ) {
-                super.onChildDraw(
-                    c,
-                    recyclerView,
-                    viewHolder,
-                    dX,
-                    dY,
-                    actionState,
-                    isCurrentlyActive
-                )
+            override fun onChildDraw(c: Canvas,recyclerView: RecyclerView,viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
+                RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                .addBackgroundColor(ContextCompat.getColor(application, R.color.itemBackground))
+                    .addActionIcon(R.drawable.ic_cookie_delete)
+                    // apply for list layout manager only
+                    .apply {
+                        if (!isGrid) {
+                            this.addSwipeLeftLabel(application.resources.getString(R.string.delete_text_in_item))
+                            this.setSwipeLeftLabelColor(ContextCompat.getColor(application, R.color.white))
+                            this.setSwipeLeftLabelTextSize(
+                                TypedValue.COMPLEX_UNIT_PX,
+                                application.resources.getDimension(R.dimen.product_list_item_delete_text_size))
+                            this.addSwipeRightLabel(application.resources.getString(R.string.delete_text_in_item))
+                            this.setSwipeRightLabelColor(ContextCompat.getColor(application, R.color.white))
+                            this.setSwipeRightLabelTextSize(
+                                TypedValue.COMPLEX_UNIT_PX,
+                                application.resources.getDimension(R.dimen.product_list_item_delete_text_size))
+                        }
+                    }
+                    .create()
+                    .decorate();
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                Toast.makeText(getApplication(), "swiped!", Toast.LENGTH_LONG).show()
+                val pos = viewHolder.adapterPosition
+                val ed = sortedList.value?.get(pos)?.expiryDate?.let {
+                    uiScope.launch {
+                        delete(it)
+                        Toast.makeText(application, it.toString(), Toast.LENGTH_LONG).show()
+                    }
+                }
             }
         }
+
+    // to delete Expiry Date from database
+    private suspend fun delete(expiryDate: ExpiryDate) {
+        withContext(Dispatchers.IO) {
+            databaseDao.delete(expiryDate)
+        }
+    }
 
     // to calculate number of spans(columns)
     private fun calculateSpanCount(containerWidth: Int): Int {
@@ -406,28 +426,28 @@ class ProductShelfViewModel(
         intent.putExtra(NotificationConstants.EXPIRY_DATE_EXTRAS_ID, expiryDate)
         intent.putExtra(NotificationConstants.IMAGE_PATH_EXTRAS_ID, imagePath)
         intent.putExtra(NotificationConstants.EXPIRY_DATE_ID_EXTRAS_ID, expiryDateId)
-        // TODO to think what request code to add to separate notifications for different products
-        // TODO to work with requestCode below to send multiple notif. for multiple products but update notif if it is same product
-        val pendingIntent = PendingIntent.getBroadcast(application, expiryDateId.toInt(), intent, 0)
+
         // TODO(set this for exact time)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             // TODO tp test all that stuff
             val daysBefore = mutableListOf<Int>().apply {
                 add(5)
+                add(4)
                 add(3)
                 add(2)
                 add(1)
             }
             val notificationTimes = getNotificationTimes(9, 21, expiryDate, daysBefore)
-//            notificationTimes.forEach { notificationTime ->
-            //TODO notification times are good! now make this work correctly and test
-            val time = Date().time
-            for(i in 1..2) {
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, time + i*5000, pendingIntent)
-            }
 
-//            }
+            notificationTimes.forEachIndexed { idx, time ->
+            //TODO notification times are good! now make this work correctly and test
+                val requestId = idx
+                val pendingIntent = PendingIntent.getBroadcast(application, requestId, intent, 0)
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+            }
         }
+        //TODO some action when click on notification
+        //TODO include some button action
     }
 
     // TODO to think where to put this function

@@ -34,6 +34,10 @@
     <dimen name="products_list_item_title_size">16sp</dimen>
     <dimen name="products_list_item_additional_text_size">14sp</dimen>
     <dimen name="product_list_title_to_days_left_space">16dp</dimen>
+    <dimen name="product_list_item_delete_ic_size">48dp</dimen>
+    <dimen name="product_list_item_delete_ic_right_margin">20dp</dimen>
+    <dimen name="product_list_item_delete_text_size">16sp</dimen>
+    <dimen name="product_list_item_delete_text_right_margin">8dp</dimen>
 
     <!--products grid item-->
     <dimen name="products_grid_item_image_width">108dp</dimen>
