@@ -29,6 +29,10 @@ interface ProductDatabaseDao {
     @Query("SELECT * FROM expiry_date_table WHERE expiry_date_id = :id")
     fun getProductAndExpiryDate(id: Long): LiveData<ProductAndExpiryDate>
 
+    //for product title suggestions
+    @Query("SELECT * FROM products_table ORDER BY title ASC")
+    fun getAllProductsByTitleAsc(): LiveData<List<Product>>
+
     //position 0 - time left asc
     @Query("SELECT * FROM expiry_date_table ORDER BY expiry_date ASC")
     fun getAllProductsAndExpiryDatesByTimeLeftAsc(): LiveData<List<ProductAndExpiryDate>>

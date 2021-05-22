@@ -31,6 +31,9 @@ class ProductDetailsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
+        // enable ActionBar
+        (activity as AppCompatActivity).supportActionBar?.show()
+
         // Get a reference to the binding object and inflate the fragment views.
         binding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_product_details, container, false

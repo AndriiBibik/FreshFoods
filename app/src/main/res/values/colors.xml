@@ -20,6 +20,7 @@
     <color name="color_basic_light_background">#fafafa</color>
     <color name="color_take_picture_border">#757575</color>
     <color name="color_take_picture_background">#f0f0f0</color>
+    <color name="color_choose_product_border">#cccccc</color>
 
     <!--Spinner-->
     <color name="spinner_stroke_color">#757575</color>

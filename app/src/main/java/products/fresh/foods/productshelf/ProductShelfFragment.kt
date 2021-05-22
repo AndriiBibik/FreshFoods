@@ -2,17 +2,16 @@ package products.fresh.foods.productshelf
 
 import android.Manifest
 import android.app.Activity
-import android.app.AlarmManager
-import android.app.PendingIntent
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +19,8 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ImageView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.doOnLayout
 import androidx.databinding.DataBindingUtil
@@ -35,16 +36,16 @@ import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.android.synthetic.main.layout_enter_product.view.*
 import kotlinx.android.synthetic.main.layout_product_list.view.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import products.fresh.foods.MainActivity
 import products.fresh.foods.R
+import products.fresh.foods.database.Product
 import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabase
 import products.fresh.foods.databinding.FragmentProductsShelfBinding
-import products.fresh.foods.notifications.NotificationConstants.Companion.EXPIRY_DATE_EXTRAS_ID
-import products.fresh.foods.notifications.NotificationConstants.Companion.EXPIRY_DATE_ID_EXTRAS_ID
-import products.fresh.foods.notifications.NotificationConstants.Companion.IMAGE_PATH_EXTRAS_ID
-import products.fresh.foods.notifications.NotificationConstants.Companion.TITLE_EXTRAS_ID
-import products.fresh.foods.notifications.NotificationReceiver
 import products.fresh.foods.productshelf.ProductShelfViewModel.Companion.SPAN_ONE
 import products.fresh.foods.utils.ProductUtils
 import java.io.File
@@ -75,7 +76,7 @@ class ProductShelfFragment : Fragment() {
         }
 
         override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-            val titleText = binding.enterProductLayout.enter_product_title_edit_text
+            val titleText = binding.enterProductLayout.enter_product_title_autocomplete_edit_text
                 .text.toString().trim()
             val expiryDateText = binding.enterProductLayout.date_picker_edit_field
                 .text.toString().trim()
@@ -114,6 +115,9 @@ class ProductShelfFragment : Fragment() {
         // set ActionBar title
         (activity as MainActivity).setActionBarTitle(getString(R.string.product_shelf_fragment_title))
 
+        // disable ActionBar
+        (activity as AppCompatActivity).supportActionBar?.hide()
+
         // Get a reference to the binding object and inflate the fragment views.
         binding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_products_shelf, container, false
@@ -131,6 +135,43 @@ class ProductShelfFragment : Fragment() {
             ViewModelProvider(this, viewModelFactory)
                 .get(ProductShelfViewModel::class.java)
         //
+
+        // listen "products list" changes in ViewModel to set autocompletion adapter
+        productShelfViewModel.productsList.observe(viewLifecycleOwner, Observer { products ->
+            val autoCompleteAdapter = AutoCompleteProductAdapter(requireContext(), products)
+            binding.enterProductLayout.enter_product_title_autocomplete_edit_text
+                .setAdapter(autoCompleteAdapter)
+            binding.enterProductLayout.enter_product_title_autocomplete_edit_text
+                .setOnItemClickListener { parent, view, position, id ->
+                    // get selected product
+                    val product = parent.getItemAtPosition(position) as Product
+                    // clear image data
+                    productShelfViewModel.clearProductImages()
+                    // set selected product in ViewModel
+                    productShelfViewModel.productSelected.value = product
+                    // show date picker
+                    showDatePicker()
+                }
+        })
+
+        // listener for product selected. if product selected from suggested list
+        productShelfViewModel.productSelected.observe(viewLifecycleOwner, Observer { product ->
+
+            // only if there is no image data captured by camera
+            if (productShelfViewModel.productImages.value == null) {
+
+                // set product image
+                val path = product.thumbnail
+
+                if (!path.isNullOrEmpty()) {
+                    val thumbnailBitmap = BitmapFactory.decodeFile(path)
+                    binding.enterProductLayout.product_image.setImageBitmap(thumbnailBitmap)
+                } else {
+                    // default image capture picture if there is no image for product
+                    binding.enterProductLayout.product_image.setImageResource(R.drawable.ic_carrot_take_picture)
+                }
+            }
+        })
 
         // initialize "toNotify"
         productShelfViewModel.toNotify = binding.enterProductLayout.notify_or_not_checkbox.isChecked
@@ -170,7 +211,7 @@ class ProductShelfFragment : Fragment() {
                 Observer { areTitleExpDateGrabbed ->
                     if (areTitleExpDateGrabbed) {
                         // clear text from title field
-                        binding.enterProductLayout.enter_product_title_edit_text.text?.clear()
+                        binding.enterProductLayout.enter_product_title_autocomplete_edit_text.text?.clear()
                         // clear text from expiryDate text, reset value in the ViewModel
                         binding.enterProductLayout.date_picker_edit_field.text?.clear()
                         productShelfViewModel?.resetExpiryDate()
@@ -196,7 +237,7 @@ class ProductShelfFragment : Fragment() {
 
         // listen to edit text's changes
         // for "title/description" and for "expiry date"
-        binding.enterProductLayout.enter_product_title_edit_text
+        binding.enterProductLayout.enter_product_title_autocomplete_edit_text
             .addTextChangedListener(enterProductTextWatcher)
         binding.enterProductLayout.date_picker_edit_field
             .addTextChangedListener(enterProductTextWatcher)
@@ -379,7 +420,7 @@ class ProductShelfFragment : Fragment() {
             })
 
         // "done" button listener for title/description edit text
-        binding.enterProductLayout.enter_product_title_edit_text.apply {
+        binding.enterProductLayout.enter_product_title_autocomplete_edit_text.apply {
             setOnEditorActionListener { textView, actionId, keyEvent ->
                 when (actionId) {
                     EditorInfo.IME_ACTION_DONE -> {
@@ -413,6 +454,9 @@ class ProductShelfFragment : Fragment() {
         // build
         val datePicker = buildDatePicker()
 
+        // for now there is no way to change text for date picker buttons.
+        // from "OK" to "SAVE" for example
+
         // add on positive button listener
         datePicker.addOnPositiveButtonClickListener { pickedDate ->
             // Date into String
@@ -423,6 +467,11 @@ class ProductShelfFragment : Fragment() {
             productShelfViewModel.enterExpiryDate(date)
             // setting up custom end icon - date is picked
             showExpiryDateCorrectIc()
+
+            // launch only if there is a product selected from suggestions..
+            if (productShelfViewModel.productSelected.value != null) {
+                showNotifyQuestionDialog()
+            }
         }
 
         // show
@@ -442,6 +491,29 @@ class ProductShelfFragment : Fragment() {
 
         // build and return
         return builder.build()
+    }
+
+    // to show notify before expiration? dialog. only if user select product form suggestions -
+    // -> fast track
+    private fun showNotifyQuestionDialog() {
+        val dialogBuilder = AlertDialog.Builder(requireContext())
+        dialogBuilder.setMessage(R.string.notify_question)
+        // positive button
+        dialogBuilder.setPositiveButton(R.string.notify_yes) { _, _ ->
+            // check notify checkbox
+            binding.enterProductLayout.notify_or_not_checkbox.isChecked = true
+            // put product both with expiry date into database
+            productShelfViewModel.onPutProduct()
+        }
+        // negative button
+        dialogBuilder.setNegativeButton(R.string.notify_no) { _, _ ->
+            // uncheck notify checkbox
+            binding.enterProductLayout.notify_or_not_checkbox.isChecked = false
+            // put product both with expiry date into database
+            productShelfViewModel.onPutProduct()
+        }
+        val dialog = dialogBuilder.create()
+        dialog.show()
     }
 
     // update expiry date field with "correct" icon

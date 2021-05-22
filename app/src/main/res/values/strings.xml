@@ -3,6 +3,10 @@
 
     <string name="product_shelf_fragment_title">Products Shelf</string>
 
+    <!--choose a product container-->
+    <string name="clear_product_button_text">new</string>
+    <string name="choose_a_product_autocomplete_hint">Choose a product</string>
+
     <!--enter product layout-->
     <string name="enter_product_text_field_label">Product Title/Description</string>
     <string name="expiry_date_text_field_label">Expiry date xx-xx-xxxx</string>
@@ -44,5 +48,11 @@
     <!--notifications-->
     <string name="notifications_channel_name">\"time left to consume a product\"</string>
     <string name="notifications_channel_description">This is notifications channel</string>
+
+    <!--Asking if notify dialog-->
+    <string name="notify_question">Notify before expiry?</string>
+    <string name="notify_yes">Yes</string>
+    <string name="notify_no">No</string>
+    <string name="notify_cancel">Cancel</string>
 
 </resources>

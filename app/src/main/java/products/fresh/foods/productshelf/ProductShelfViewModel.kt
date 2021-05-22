@@ -72,6 +72,20 @@ class ProductShelfViewModel(
         sharedPreferences.edit().putInt(SPINNER_ID_KEY, pos).apply()
     }
 
+    // list of product for suggestions in enter product title field
+    val productsList = databaseDao.getAllProductsByTitleAsc()
+
+    // product if selected from suggested list
+    val productSelected = MutableLiveData<Product>()
+//    val productSelectedThumbnail = Transformations.map(productSelected) {
+//        uiScope.launch {
+//            withContext(Dispatchers.Main) {
+//                BitmapFactory.decodeFile(it.thumbnail)
+//            }
+//
+//        }
+//    }
+
     // actual sorted list that we going to use. This list is based on "list" above and "sortType"
     val sortedList = Transformations.switchMap(sortSpinnerPos) { pos ->
         when (pos) {
@@ -92,6 +106,7 @@ class ProductShelfViewModel(
     private val _productImages = MutableLiveData<ImageBitmaps>()
     val productImages: LiveData<ImageBitmaps>
         get() = _productImages
+    fun clearProductImages() { _productImages.value = null }
 
     // Product title/description
     private val _productTitle = MutableLiveData<String>()
