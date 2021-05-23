@@ -14,6 +14,7 @@ import android.media.ExifInterface
 import android.media.ThumbnailUtils
 import android.os.Build
 import android.os.Environment
+import android.text.format.DateUtils
 import android.util.Log
 import android.util.TypedValue
 import android.widget.Toast
@@ -77,14 +78,6 @@ class ProductShelfViewModel(
 
     // product if selected from suggested list
     val productSelected = MutableLiveData<Product>()
-//    val productSelectedThumbnail = Transformations.map(productSelected) {
-//        uiScope.launch {
-//            withContext(Dispatchers.Main) {
-//                BitmapFactory.decodeFile(it.thumbnail)
-//            }
-//
-//        }
-//    }
 
     // actual sorted list that we going to use. This list is based on "list" above and "sortType"
     val sortedList = Transformations.switchMap(sortSpinnerPos) { pos ->
@@ -380,55 +373,95 @@ class ProductShelfViewModel(
     //
     //
 
+    // check if we working with new product
+    fun isUsingNewProduct(): Boolean {
+        return productSelected.value == null || ( productSelected.value != null &&
+               (_productImages.value != null || !_productTitle.value.equals(productSelected.value?.title)))
+    }
 
     // for "put product" button in fragment
     fun onPutProduct() {
         uiScope.launch {
 
-            // "grab title and expiry date for further processing"
-            val title = _productTitle.value
-            val expiryDate = _expiryDate.value?.let { expiryDate ->
-                ProductUtils.convertExpiryDateForDatabase(expiryDate)
-            }
-            // now above values in the Ui and in ViewModel could be cleared, so..
-            _areTitleExpiryDateNoNeeded.value = true
-            _areTitleExpiryDateNoNeeded.value = false
+            // new product
+            if ( isUsingNewProduct() ) {
 
-            // same prefix to images files names
-            val prefix = generateImageName()
-
-            // save larger image
-            val itemImagePath = _productImages.value?.let {
-                it.itemDetailsPageImage?.let { bitmap ->
-                    saveBitmapIntoFile(bitmap, prefix, SUFFIX_LARGER_IMAGE, IMAGE_QUALITY)
+                // "grab" title and expiry date for further processing
+                val title = _productTitle.value
+                val expiryDate = _expiryDate.value?.let { expiryDate ->
+                    ProductUtils.convertExpiryDateForDatabase(expiryDate)
                 }
-            }
-            // save thumbnail image
-            val thumbnailImagePath = _productImages.value?.let {
-                it.listThumbnail?.let {
-                    saveBitmapIntoFile(it, prefix, SUFFIX_THUMBNAIL_IMAGE, IMAGE_QUALITY)
+                // now above values not needed in the Ui and in ViewModel could be cleared, so..
+                _areTitleExpiryDateNoNeeded.value = true
+                _areTitleExpiryDateNoNeeded.value = false
+
+                // same prefix to images files names
+                val prefix = generateImageName()
+
+                // save larger image
+                val itemImagePath = _productImages.value?.let {
+                    it.itemDetailsPageImage?.let { bitmap ->
+                        saveBitmapIntoFile(bitmap, prefix, SUFFIX_LARGER_IMAGE, IMAGE_QUALITY)
+                    }
                 }
-            }
-            // now images saved, so i can reset mutable live data value for product images
-            _productImages.value = null
+                // save thumbnail image
+                val thumbnailImagePath = _productImages.value?.let {
+                    it.listThumbnail?.let {
+                        saveBitmapIntoFile(it, prefix, SUFFIX_THUMBNAIL_IMAGE, IMAGE_QUALITY)
+                    }
+                }
+                // now images saved, so i can reset mutable live data value for product images
+                _productImages.value = null
 
-            val productId = title?.let { title ->
-                insertProduct(Product(itemImagePath, thumbnailImagePath, title))
-            }
+                val productId = title?.let { title ->
+                    insertProduct(Product(itemImagePath, thumbnailImagePath, title))
+                }
 
-            productId?.let { productId ->
-                if (productId != -1L) {
-                    expiryDate?.let { expiryDate ->
-                        val id = insertExpiryDate(ExpiryDate(productId, expiryDate))
-                        if (id != -1L) {
-                            // schedule notifications here
-                            if (toNotify) {
-                                schedulePendingNotification(title, expiryDate, itemImagePath, id)
+                productId?.let { productId ->
+                    if (productId != -1L) {
+                        expiryDate?.let { expiryDate ->
+                            val id = insertExpiryDate(ExpiryDate(productId, expiryDate))
+                            if (id != -1L) {
+                                // schedule notifications here
+                                if (toNotify) {
+                                    schedulePendingNotification(title, expiryDate, itemImagePath, id)
+                                }
+                            }
+                        }
+                    }
+                }
+
+            // use existed product
+            } else {
+
+                // "grab" expiry date for further processing
+                val expiryDate = _expiryDate.value?.let { expiryDate ->
+                    ProductUtils.convertExpiryDateForDatabase(expiryDate)
+                }
+
+                // now title and expiry date not needed in the Ui and in ViewModel could be cleared, so..
+                _areTitleExpiryDateNoNeeded.value = true
+                _areTitleExpiryDateNoNeeded.value = false
+
+                val product = productSelected.value
+
+                productSelected.value?.productId?.let { productId ->
+                    if (productId != 0L) {
+                        expiryDate?.let { expiryDate ->
+                            val id = insertExpiryDate(ExpiryDate(productId, expiryDate))
+                            if (id != -1L) {
+                                // schedule notifications here
+                                if (toNotify) {
+                                    product?.let { product ->
+                                        schedulePendingNotification(product.title, expiryDate, product.image, id)
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
+            _productImages.value = null
         }
     }
 
@@ -455,10 +488,14 @@ class ProductShelfViewModel(
             }
             val notificationTimes = getNotificationTimes(9, 21, expiryDate, daysBefore)
 
+
             notificationTimes.forEachIndexed { idx, time ->
             //TODO notification times are good! now make this work correctly and test
                 val requestId = idx
                 val pendingIntent = PendingIntent.getBroadcast(application, requestId, intent, 0)
+                // TODO testing block to delete
+//                val timeTest = Date().time + requestId*4000
+//                Log.v("vvvv", requestId.toString())
                 alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
             }
         }
@@ -480,13 +517,13 @@ class ProductShelfViewModel(
 
         val notificationTimes = mutableListOf<Long>()
 
-        daysBefore.forEach {
-            if (it < fullDaysLeft) {
+        daysBefore.forEach { days ->
+            if (days < fullDaysLeft) {
 
                 // daysBefore + some n of hour into the future to show in the morning
                 // TODO this logic can be reviewed in the future
                 val notificationTime =
-                    ProductUtils.convertExpiryDateIntoMillis(expiryDate) + 1 - it * 24 * 60 * 60 * 1000 + workingHourStart * 60 * 60 * 1000
+                    ProductUtils.convertExpiryDateIntoMillis(expiryDate) + 1 - days * 24 * 60 * 60 * 1000 + workingHourStart * 60 * 60 * 1000
 
                 notificationTimes.add(notificationTime)
             }

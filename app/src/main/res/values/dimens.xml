@@ -20,7 +20,7 @@
     <!--"enter product layout"-->
     <dimen name="product_image_size">88dp</dimen>
     <dimen name="enter_product_layout_horizontal_padding">16dp</dimen>
-    <dimen name="enter_product_layout_top_padding">16dp</dimen>
+    <dimen name="enter_product_layout_top_padding">20dp</dimen>
     <dimen name="enter_product_layout_bottom_padding">16dp</dimen>
     <!--Space between image button to capture photo and input elements-->
     <dimen name="enter_product_capture_photo_space">20dp</dimen>

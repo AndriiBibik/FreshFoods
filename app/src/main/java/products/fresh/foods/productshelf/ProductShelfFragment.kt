@@ -149,8 +149,14 @@ class ProductShelfFragment : Fragment() {
                     productShelfViewModel.clearProductImages()
                     // set selected product in ViewModel
                     productShelfViewModel.productSelected.value = product
-                    // show date picker
-                    showDatePicker()
+                    // show date picker if there is no any selected
+                    if (productShelfViewModel.expiryDate.value == null) {
+                        showDatePicker()
+                    }
+                    // if date is selected already - show notify or not dialog
+                    else {
+                        showNotifyQuestionDialog()
+                    }
                 }
         })
 
@@ -339,6 +345,8 @@ class ProductShelfFragment : Fragment() {
                 imageBitmaps.listThumbnail?.let { thumbnail ->
                     binding.enterProductLayout.product_image.setImageBitmap(thumbnail)
                 }
+            } else {
+                binding.enterProductLayout.product_image.setImageResource(R.drawable.ic_carrot_take_picture)
             }
         })
 
@@ -469,7 +477,7 @@ class ProductShelfFragment : Fragment() {
             showExpiryDateCorrectIc()
 
             // launch only if there is a product selected from suggestions..
-            if (productShelfViewModel.productSelected.value != null) {
+            if ( !productShelfViewModel.isUsingNewProduct() ) {
                 showNotifyQuestionDialog()
             }
         }
