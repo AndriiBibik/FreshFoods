@@ -48,6 +48,7 @@
     <!--notifications-->
     <string name="notifications_channel_name">\"time left to consume a product\"</string>
     <string name="notifications_channel_description">This is notifications channel</string>
+    <string name="notification_button_eaten">EATEN!</string>
 
     <!--Asking if notify dialog-->
     <string name="notify_question">Notify before expiry?</string>

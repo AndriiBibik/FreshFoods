@@ -2,10 +2,12 @@ package products.fresh.foods.notifications
 
 class NotificationConstants {
     companion object {
-        // extras ids to receive and put info into notification
-        const val TITLE_EXTRAS_ID = "title_extras_id"
-        const val EXPIRY_DATE_EXTRAS_ID = "expiry_date_extras_id"
-        const val IMAGE_PATH_EXTRAS_ID = "image_path_extras_id"
-        const val EXPIRY_DATE_ID_EXTRAS_ID = "expiry_date_id_extras_id"
+        const val TITLE_KEY = "title"
+        const val EXPIRY_DATE_KEY = "expiry_date"
+        const val EXPIRY_DATE_ID_KEY = "expiry_date_id"
+        const val IMAGE_PATH_KEY = "image_path"
+        const val NOTIFICATION_ID_KEY = "notification_id"
+        const val ALL_NOTIFICATIONS_KEY = "all_notifications"
+        const val GROUP = "fresh_foods_group"
     }
 }

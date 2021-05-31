@@ -27,8 +27,10 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 import kotlinx.coroutines.*
+import products.fresh.foods.GoodFoodApp
 import products.fresh.foods.R
 import products.fresh.foods.database.ExpiryDate
+import products.fresh.foods.database.Notification
 import products.fresh.foods.database.Product
 import products.fresh.foods.database.ProductDatabaseDao
 import products.fresh.foods.notifications.NotificationConstants
@@ -39,6 +41,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlin.math.exp
 
 class ProductShelfViewModel(
     private val databaseDao: ProductDatabaseDao, application: Application
@@ -99,7 +102,10 @@ class ProductShelfViewModel(
     private val _productImages = MutableLiveData<ImageBitmaps>()
     val productImages: LiveData<ImageBitmaps>
         get() = _productImages
-    fun clearProductImages() { _productImages.value = null }
+
+    fun clearProductImages() {
+        _productImages.value = null
+    }
 
     // Product title/description
     private val _productTitle = MutableLiveData<String>()
@@ -110,7 +116,10 @@ class ProductShelfViewModel(
     private val _expiryDate = MutableLiveData<String>()
     val expiryDate: LiveData<String>
         get() = _expiryDate
-    fun resetExpiryDate() { _expiryDate.value = null }
+
+    fun resetExpiryDate() {
+        _expiryDate.value = null
+    }
 
     // current photo path
     private lateinit var currentPhotoPath: String
@@ -143,10 +152,11 @@ class ProductShelfViewModel(
 
     // item touch helper callback to remove product from db when swipe
     val itemTouchHelperCallback =
-        object: ItemTouchHelper.SimpleCallback(
+        object : ItemTouchHelper.SimpleCallback(
             0,
             ItemTouchHelper.RIGHT or
-                    ItemTouchHelper.LEFT) {
+                    ItemTouchHelper.LEFT
+        ) {
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
@@ -155,28 +165,64 @@ class ProductShelfViewModel(
                 return false
             }
 
-            override fun onChildDraw(c: Canvas,recyclerView: RecyclerView,viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
-                RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-                .addBackgroundColor(ContextCompat.getColor(application, R.color.itemBackground))
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                RecyclerViewSwipeDecorator.Builder(
+                    c,
+                    recyclerView,
+                    viewHolder,
+                    dX,
+                    dY,
+                    actionState,
+                    isCurrentlyActive
+                )
+                    .addBackgroundColor(ContextCompat.getColor(application, R.color.itemBackground))
                     .addActionIcon(R.drawable.ic_cookie_delete)
                     // apply for list layout manager only
                     .apply {
                         if (!isGrid) {
                             this.addSwipeLeftLabel(application.resources.getString(R.string.delete_text_in_item))
-                            this.setSwipeLeftLabelColor(ContextCompat.getColor(application, R.color.white))
+                            this.setSwipeLeftLabelColor(
+                                ContextCompat.getColor(
+                                    application,
+                                    R.color.white
+                                )
+                            )
                             this.setSwipeLeftLabelTextSize(
                                 TypedValue.COMPLEX_UNIT_PX,
-                                application.resources.getDimension(R.dimen.product_list_item_delete_text_size))
+                                application.resources.getDimension(R.dimen.product_list_item_delete_text_size)
+                            )
                             this.addSwipeRightLabel(application.resources.getString(R.string.delete_text_in_item))
-                            this.setSwipeRightLabelColor(ContextCompat.getColor(application, R.color.white))
+                            this.setSwipeRightLabelColor(
+                                ContextCompat.getColor(
+                                    application,
+                                    R.color.white
+                                )
+                            )
                             this.setSwipeRightLabelTextSize(
                                 TypedValue.COMPLEX_UNIT_PX,
-                                application.resources.getDimension(R.dimen.product_list_item_delete_text_size))
+                                application.resources.getDimension(R.dimen.product_list_item_delete_text_size)
+                            )
                         }
                     }
                     .create()
                     .decorate();
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                super.onChildDraw(
+                    c,
+                    recyclerView,
+                    viewHolder,
+                    dX,
+                    dY,
+                    actionState,
+                    isCurrentlyActive
+                )
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
@@ -375,8 +421,8 @@ class ProductShelfViewModel(
 
     // check if we working with new product
     fun isUsingNewProduct(): Boolean {
-        return productSelected.value == null || ( productSelected.value != null &&
-               (_productImages.value != null || !_productTitle.value.equals(productSelected.value?.title)))
+        return productSelected.value == null || (productSelected.value != null &&
+                (_productImages.value != null || !_productTitle.value.equals(productSelected.value?.title)))
     }
 
     // for "put product" button in fragment
@@ -424,14 +470,14 @@ class ProductShelfViewModel(
                             if (id != -1L) {
                                 // schedule notifications here
                                 if (toNotify) {
-                                    schedulePendingNotification(title, expiryDate, itemImagePath, id)
+                                    schedulePendingNotifications(title, expiryDate, itemImagePath, id)
                                 }
                             }
                         }
                     }
                 }
 
-            // use existed product
+                // use existed product
             } else {
 
                 // "grab" expiry date for further processing
@@ -453,7 +499,7 @@ class ProductShelfViewModel(
                                 // schedule notifications here
                                 if (toNotify) {
                                     product?.let { product ->
-                                        schedulePendingNotification(product.title, expiryDate, product.image, id)
+                                        schedulePendingNotifications(product.title, expiryDate, product.image, id)
                                     }
                                 }
                             }
@@ -465,45 +511,60 @@ class ProductShelfViewModel(
         }
     }
 
-    // to schedule notification for the future, n days before product expires
-    private fun schedulePendingNotification(title: String, expiryDate: Int, imagePath: String?, expiryDateId: Long) {
-        val application = getApplication<Application>()
-        val alarmManager = application.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(application, NotificationReceiver::class.java)
-        // put product title and expiry date into intent to display this info in the notification
-        intent.putExtra(NotificationConstants.TITLE_EXTRAS_ID, title)
-        intent.putExtra(NotificationConstants.EXPIRY_DATE_EXTRAS_ID, expiryDate)
-        intent.putExtra(NotificationConstants.IMAGE_PATH_EXTRAS_ID, imagePath)
-        intent.putExtra(NotificationConstants.EXPIRY_DATE_ID_EXTRAS_ID, expiryDateId)
-
-        // TODO(set this for exact time)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            // TODO tp test all that stuff
-            val daysBefore = mutableListOf<Int>().apply {
-                add(5)
-                add(4)
-                add(3)
-                add(2)
-                add(1)
-            }
-            val notificationTimes = getNotificationTimes(9, 21, expiryDate, daysBefore)
-
-
-            notificationTimes.forEachIndexed { idx, time ->
-            //TODO notification times are good! now make this work correctly and test
-                val requestId = idx
-                val pendingIntent = PendingIntent.getBroadcast(application, requestId, intent, 0)
-                // TODO testing block to delete
-//                val timeTest = Date().time + requestId*4000
-//                Log.v("vvvv", requestId.toString())
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
-            }
-        }
-        //TODO some action when click on notification
-        //TODO include some button action
+    // TODO to override this method. this method written like that for test reasons
+    private fun getNotificationsTestDaysLeft() = mutableListOf<Int>().apply {
+        add(5)
+        add(4)
+        add(3)
+        add(2)
+        add(1)
     }
 
-    // TODO to think where to put this function
+    // to schedule notification for the future, n days before product expires
+    private suspend fun schedulePendingNotifications(title: String, expiryDate: Int, imagePath: String?, expiryDateId: Long) {
+        val application = getApplication<Application>()
+        val alarmManager = application.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        // all days before exp. date to notify
+        val daysBefore = getNotificationsTestDaysLeft()
+        val notificationTimes = getNotificationTimes(9,21, expiryDate, daysBefore)
+
+        // save notifications into database
+        val ids = LongArray(notificationTimes.size) {
+            insertNotification(Notification(expiryDateId))
+        }
+
+        // iterate to set all notifications
+        notificationTimes.forEachIndexed {  idx, time ->
+
+            // notification id from previously entered into table
+            val notificationId = ids[idx]
+
+            // check if inserted
+            if (notificationId != -1L) {
+
+                val intent = Intent(application, NotificationReceiver::class.java)
+                // put extras
+                intent.putExtra(NotificationConstants.TITLE_KEY, title)
+                intent.putExtra(NotificationConstants.EXPIRY_DATE_KEY, expiryDate)
+                intent.putExtra(NotificationConstants.EXPIRY_DATE_ID_KEY, expiryDateId)
+                intent.putExtra(NotificationConstants.NOTIFICATION_ID_KEY, notificationId)
+                intent.putExtra(NotificationConstants.IMAGE_PATH_KEY, imagePath)
+                intent.putExtra(NotificationConstants.ALL_NOTIFICATIONS_KEY, ids)
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+
+                    val pendingIntent =
+                        PendingIntent.getBroadcast(application, notificationId.toInt(), intent, PendingIntent.FLAG_ONE_SHOT)
+
+                    // observation: if pending intent request code same - it rewrites
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+                }
+            }
+        }
+
+    }
+
     fun getNotificationTimes(
         workingHourStart: Int,
         workingHourEnd: Int,
@@ -537,6 +598,7 @@ class ProductShelfViewModel(
             databaseDao.insert(product)
         }
     }
+
     // suspend fun to insert expiry date into database
     private suspend fun insertExpiryDate(expiryDate: ExpiryDate): Long {
         return withContext(Dispatchers.IO) {
@@ -544,8 +606,20 @@ class ProductShelfViewModel(
         }
     }
 
+    // suspend fun to insert notification into database
+    private suspend fun insertNotification(notification: Notification): Long {
+        return withContext(Dispatchers.IO) {
+            databaseDao.insert(notification)
+        }
+    }
+
     // save bitmap into a file
-    private suspend fun saveBitmapIntoFile(bitmap: Bitmap, prefix: String, suffix: String, quality: Int)
+    private suspend fun saveBitmapIntoFile(
+        bitmap: Bitmap,
+        prefix: String,
+        suffix: String,
+        quality: Int
+    )
             : String {
 
         return withContext(Dispatchers.IO) {

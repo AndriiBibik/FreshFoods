@@ -14,6 +14,10 @@ interface ProductDatabaseDao {
     @Insert
     suspend fun insert(expiryDate: ExpiryDate): Long
 
+    //notification
+    @Insert
+    suspend fun insert(notification: Notification): Long
+
     //product
     @Update
     suspend fun update(product: Product)
