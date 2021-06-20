@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,8 +20,6 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ImageView
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.doOnLayout
 import androidx.databinding.DataBindingUtil
@@ -36,16 +35,13 @@ import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.android.synthetic.main.layout_enter_product.view.*
 import kotlinx.android.synthetic.main.layout_product_list.view.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import products.fresh.foods.MainActivity
 import products.fresh.foods.R
 import products.fresh.foods.database.Product
 import products.fresh.foods.database.ProductAndExpiryDate
 import products.fresh.foods.database.ProductDatabase
 import products.fresh.foods.databinding.FragmentProductsShelfBinding
+import products.fresh.foods.notifications.NotificationConstants
 import products.fresh.foods.productshelf.ProductShelfViewModel.Companion.SPAN_ONE
 import products.fresh.foods.utils.ProductUtils
 import java.io.File
@@ -115,8 +111,8 @@ class ProductShelfFragment : Fragment() {
         // set ActionBar title
         (activity as MainActivity).setActionBarTitle(getString(R.string.product_shelf_fragment_title))
 
-        // disable ActionBar
-        (activity as AppCompatActivity).supportActionBar?.hide()
+//        // change actionbar color
+//        (activity as MainActivity).supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.MAGENTA))
 
         // Get a reference to the binding object and inflate the fragment views.
         binding = DataBindingUtil.inflate(
@@ -228,10 +224,11 @@ class ProductShelfFragment : Fragment() {
             // 2. if ViewModel loads {database data} first (before doOnLayout triggered)
             // That is GOOD. TESTED...
             // GridLayoutManager and Adapter are initialized, now observer on the list can be applied
-            productShelfViewModel.sortedList.observe(viewLifecycleOwner, Observer {
+            productShelfViewModel.sortedList.observe(viewLifecycleOwner, Observer { list ->
 
+                Log.v("ttt", "triggers")
                 // list is changed, so submit it to the adapter
-                productAdapter.submitList(it)
+                productAdapter.submitList(list)
 
                 // apply initialized GridLayoutManager and Adapter to RecyclerView
                 binding.productListLayout.products_recycler_view.apply {
@@ -316,7 +313,7 @@ class ProductShelfFragment : Fragment() {
                     ) {
                         productShelfViewModel.setSortSpinnerPos(pos)
                         // update RecyclerView
-                        productAdapter.submitList(productShelfViewModel.sortedList.value)
+//                        productAdapter.submitList(productShelfViewModel.sortedList.value)
                     }
 
                     override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -477,7 +474,7 @@ class ProductShelfFragment : Fragment() {
             showExpiryDateCorrectIc()
 
             // launch only if there is a product selected from suggestions..
-            if ( !productShelfViewModel.isUsingNewProduct() ) {
+            if (!productShelfViewModel.isUsingNewProduct()) {
                 showNotifyQuestionDialog()
             }
         }
@@ -505,7 +502,18 @@ class ProductShelfFragment : Fragment() {
     // -> fast track
     private fun showNotifyQuestionDialog() {
         val dialogBuilder = AlertDialog.Builder(requireContext())
-        dialogBuilder.setMessage(R.string.notify_question)
+        dialogBuilder.setTitle(R.string.notify_question)
+        // full days left to expiry
+        val daysLeft = productShelfViewModel.expiryDate.value?.let { expiryDateString ->
+            val expiryDateInt = ProductUtils.convertExpiryDateForDatabase(expiryDateString)
+            val timeLeft = ProductUtils.convertExpiryDateToTimeLeft(expiryDateInt!!)
+            ProductUtils.convertTimeLeftToFullDaysLeft(timeLeft)
+        }
+        // custom dialog layout
+        val layout =
+            NotificationOptionsHelper(requireContext()).buildOptionsLayout(daysLeft!!, NotificationConstants.NOTIFICATION_OPTIONS_LAYOUT)
+        // set custom layout
+        dialogBuilder.setView(layout)
         // positive button
         dialogBuilder.setPositiveButton(R.string.notify_yes) { _, _ ->
             // check notify checkbox

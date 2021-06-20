@@ -30,6 +30,22 @@ interface ProductDatabaseDao {
     @Delete
     suspend fun delete(expiryDate: ExpiryDate)
 
+    //delete notification
+    @Delete
+    suspend fun delete(notification: Notification)
+
+    //delete expiry date by id
+    @Query("DELETE FROM expiry_date_table WHERE expiry_date_id = :id")
+    suspend fun deleteExpiryDateById(id: Long)
+
+    //delete all notifications for expiry date id
+    @Query("DELETE FROM notification_table WHERE expiry_date_id = :id")
+    suspend fun deleteNotificationsForExpiryDate(id: Long)
+
+    //
+    @Query("SELECT * FROM notification_table WHERE expiry_date_id = :id")
+    suspend fun getNotificationsByExpiryDate(id: Long): List<Notification>
+
     @Query("SELECT * FROM expiry_date_table WHERE expiry_date_id = :id")
     fun getProductAndExpiryDate(id: Long): LiveData<ProductAndExpiryDate>
 

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Fresh Foods xx-xx-xxxx</string>
 
-    <string name="product_shelf_fragment_title">Products Shelf</string>
+    <string name="product_shelf_fragment_title">Fresh Foods App</string>
 
     <!--choose a product container-->
     <string name="clear_product_button_text">new</string>
@@ -55,5 +55,19 @@
     <string name="notify_yes">Yes</string>
     <string name="notify_no">No</string>
     <string name="notify_cancel">Cancel</string>
+    <string name="notify_hour_text">Hour:</string>
+    <string name="notify_days_before_text">Days before expiry:</string>
+    <!--Notification options menu-->
+    <string name="notification_options_menu_item">Notification options</string>
+    <!--Main menu options dialog title-->
+    <string name="options_title">Options</string>
+    <!--Notification options button-->
+    <string name="notification_options_button">Done</string>
+
+    <!--General options dialog-->
+    <string name="options_notifications_label">Notifications</string>
+    <string name="options_delete_after_expiry_label">Delete after expiry</string>
+    <string name="options_days_title">Days:</string>
+    <string name="options_never_delete_text">Never!</string>
 
 </resources>

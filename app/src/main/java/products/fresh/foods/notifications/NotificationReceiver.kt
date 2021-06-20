@@ -44,7 +44,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 val buttonIntent = Intent(context, NotificationButtonReceiver::class.java)
                 buttonIntent.putExtra(NotificationConstants.EXPIRY_DATE_ID_KEY, expiryDateId)
                 buttonIntent.putExtra(NotificationConstants.ALL_NOTIFICATIONS_KEY, notificationsIds)
-                val buttonPendingIntent = PendingIntent.getBroadcast(context, 0, buttonIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                val buttonPendingIntent = PendingIntent.getBroadcast(context, expiryDateId.toInt(), buttonIntent, PendingIntent.FLAG_ONE_SHOT)
 
                 // button text
                 val buttonText = context.resources.getString(R.string.notification_button_eaten)

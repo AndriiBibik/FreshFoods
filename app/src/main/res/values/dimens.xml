@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!--Toolbar-->
+    <dimen name="toolbar_elevation">4dp</dimen>
+    <dimen name="toolbar_text_size">24sp</dimen>
+
     <!--choose a product from existing container-->
     <dimen name="button_brush_ic_size">24dp</dimen>
     <dimen name="choose_product_button_left_margin">16dp</dimen>
@@ -88,5 +92,26 @@
     <dimen name="details_layout_days_left">18sp</dimen>
     <dimen name="details_layout_padding">16sp</dimen>
     <dimen name="details_layout_items_space">16dp</dimen>
+
+    <!--notification options dialog-->
+    <dimen name="notification_options_hour_number_left_margin">8dp</dimen>
+    <dimen name="notification_options_layout_vertical_padding">16dp</dimen>
+    <dimen name="notification_options_layout_horizontal_padding">8dp</dimen>
+    <dimen name="notification_options_days_before_title_margin_top">8dp</dimen>
+    <dimen name="notification_options_days_before_margin_top">8dp</dimen>
+    <dimen name="notification_options_element_left_margin">16dp</dimen>
+    <dimen name="notification_options_title_size">16sp</dimen>
+
+    <!--general options dialog-->
+    <dimen name="options_container_border">1dp</dimen>
+    <dimen name="options_container_radius">8dp</dimen>
+    <dimen name="options_container_label_size">14dp</dimen>
+    <dimen name="options_container_label_margin">16dp</dimen>
+    <dimen name="options_container_margin">12dp</dimen>
+    <dimen name="options_container_button_to_text_margin">10dp</dimen>
+    <dimen name="options_container_days_delete_size">16sp</dimen>
+    <dimen name="options_container_days_buttons_top_margin">8dp</dimen>
+    <dimen name="options_container_never_delete_margin">16dp</dimen>
+
 
 </resources>

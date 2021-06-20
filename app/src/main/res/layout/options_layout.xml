@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/options_container_margin"
+        app:cardCornerRadius="@dimen/options_container_radius"
+        app:strokeWidth="@dimen/options_container_border"
+        app:strokeColor="@color/colorAccent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/options_notifications_label"
+                android:layout_marginLeft="@dimen/options_container_label_margin"
+                android:textSize="@dimen/options_container_label_size"
+                android:textColor="@color/colorAccent"/>
+            <include layout="@layout/notification_options_layout"/>
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/options_container_margin"
+        android:layout_marginRight="@dimen/options_container_margin"
+        app:cardCornerRadius="@dimen/options_container_radius"
+        app:strokeWidth="@dimen/options_container_border"
+        app:strokeColor="@color/colorAccent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/options_delete_after_expiry_label"
+                android:layout_marginLeft="@dimen/options_container_label_margin"
+                android:textSize="@dimen/options_container_label_size"
+                android:textColor="@color/colorAccent"/>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:paddingTop="@dimen/notification_options_layout_vertical_padding"
+                android:paddingBottom="@dimen/notification_options_layout_vertical_padding"
+                android:paddingLeft="@dimen/notification_options_layout_horizontal_padding"
+                android:paddingRight="@dimen/notification_options_layout_horizontal_padding"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/title_days"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/notification_options_element_left_margin"
+                    android:text="@string/options_days_title"
+                    android:textSize="@dimen/notification_options_title_size"
+                    android:textAllCaps="true"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="@dimen/options_container_days_buttons_top_margin"
+                    android:layout_marginLeft="@dimen/notification_options_element_left_margin"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/title_days">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/subtract_days_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/Widget.MaterialComponents.Button.IconOnly"
+                        app:icon="@drawable/ic_remove"/>
+                    <TextView
+                        android:id="@+id/days_after_expiry_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:layout_marginLeft="@dimen/options_container_button_to_text_margin"
+                        android:layout_marginRight="@dimen/options_container_button_to_text_margin"
+                        android:text="7"
+                        android:textSize="@dimen/options_container_days_delete_size"
+                        tools:text="7"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/add_days_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/Widget.MaterialComponents.Button.IconOnly"
+                        app:icon="@drawable/ic_add"/>
+                    <!--never checkbox-->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="@dimen/options_container_never_delete_margin"
+                        android:text="@string/options_never_delete_text"/>
+                    <CheckBox
+                        android:id="@+id/never_delete_checkbox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

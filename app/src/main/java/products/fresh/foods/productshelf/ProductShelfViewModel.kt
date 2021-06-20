@@ -14,10 +14,8 @@ import android.media.ExifInterface
 import android.media.ThumbnailUtils
 import android.os.Build
 import android.os.Environment
-import android.text.format.DateUtils
 import android.util.Log
 import android.util.TypedValue
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -27,28 +25,28 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 import kotlinx.coroutines.*
-import products.fresh.foods.GoodFoodApp
+import products.fresh.foods.GoodFoodApp.Companion.APP_SHARED_PREFERENCES
 import products.fresh.foods.R
 import products.fresh.foods.database.ExpiryDate
 import products.fresh.foods.database.Notification
 import products.fresh.foods.database.Product
 import products.fresh.foods.database.ProductDatabaseDao
+import products.fresh.foods.notifications.NotificationButtonReceiver
 import products.fresh.foods.notifications.NotificationConstants
 import products.fresh.foods.notifications.NotificationReceiver
 import products.fresh.foods.utils.ProductUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.Date
-import kotlin.math.exp
+import java.util.*
 
 class ProductShelfViewModel(
     private val databaseDao: ProductDatabaseDao, application: Application
 ) : AndroidViewModel(application) {
 
     companion object {
-        const val APP_SHARED_PREFERENCES = "app_shared_preferences"
         const val SPINNER_ID_KEY = "spinner_id"
         const val IS_GRiD_KEY = "is_greed"
         const val SPINNER_ID_TIME_LEFT_ASC = 0
@@ -66,6 +64,70 @@ class ProductShelfViewModel(
     private val sharedPreferences: SharedPreferences = application.getSharedPreferences(
         APP_SHARED_PREFERENCES, Context.MODE_PRIVATE
     )
+
+    // ViewModel Job
+    private val viewModelJob = Job()
+
+    // coroutines scope
+    private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
+
+    // listen to shared preferences changes when
+    private val listener: SharedPreferences.OnSharedPreferenceChangeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            when(key) {
+                NotificationConstants.EXPIRY_DATES_IDS_TO_DELETE -> {
+                    // array of ids
+                    actionsToDelete()
+                }
+            }
+        }
+
+    // to trigger shared preferences change listener at start
+    private fun triggerSPChaneListener() {
+        val key = NotificationConstants.EXPIRY_DATES_IDS_TO_DELETE
+        val idsString = sharedPreferences.getString(key, "")
+        val editor = sharedPreferences.edit()
+        editor.remove(key).apply()
+        editor.putString(key, idsString).apply()
+    }
+
+    // when start view mode
+    init {
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        triggerSPChaneListener()
+    }
+
+    // actions when shared preferences expiry dates ids to delete changes
+    // one deletion and shared preferences update triggers next cycle of deletion
+    // for example "1|2|3|" -> "1|2|" -> "1|" -> ""
+    private fun actionsToDelete() {
+        // get String value from prefs
+        val idsString = sharedPreferences.getString(NotificationConstants.EXPIRY_DATES_IDS_TO_DELETE, "")
+        if (!idsString.isNullOrBlank()) {
+            val idsStringArray = idsString.split(NotificationButtonReceiver.DIVIDER)
+            // last expiry date id
+            val lastId = Integer.parseInt(idsStringArray[idsStringArray.size - 2])
+            // delete expiry date
+            uiScope.launch {
+                withContext(Dispatchers.IO) {
+                    databaseDao.deleteExpiryDateById(lastId.toLong())
+                    databaseDao.deleteNotificationsForExpiryDate(lastId.toLong())
+                }
+            }
+            // to get string of ids without last id and without divider
+            val startIndex = 0
+            val endIndex = idsString.length - lastId.toString().length - 1
+            // one more check to make it more solid
+            if (endIndex >= startIndex) {
+                val newIdsString = idsString.substring(0, endIndex)
+                // update shared preferences
+                sharedPreferences
+                    .edit()
+                    .putString(NotificationConstants.EXPIRY_DATES_IDS_TO_DELETE, newIdsString)
+                    .apply()
+            }
+        }
+    }
 
     // current sort spinner position
     val sortSpinnerPos =
@@ -91,12 +153,6 @@ class ProductShelfViewModel(
             else -> databaseDao.getAllProductsAndExpiryDates() //2
         }
     }
-
-    // ViewModel Job
-    private val viewModelJob = Job()
-
-    // coroutines scope
-    private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
     // Image Data
     private val _productImages = MutableLiveData<ImageBitmaps>()
@@ -227,21 +283,49 @@ class ProductShelfViewModel(
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val pos = viewHolder.adapterPosition
-                val ed = sortedList.value?.get(pos)?.expiryDate?.let {
+                val ed = sortedList.value?.get(pos)?.expiryDate?.let { expiryDate ->
                     uiScope.launch {
-                        delete(it)
-                        //TODO delete this Toast and Clear AlarmManager notifications for this expiry date
-                        Toast.makeText(application, it.toString(), Toast.LENGTH_LONG).show()
+                        onDeleteExpiryDateAndNotifications(expiryDate)
                     }
                 }
             }
         }
 
     // to delete Expiry Date from database
-    private suspend fun delete(expiryDate: ExpiryDate) {
+    private suspend fun deleteExpiryDate(expiryDate: ExpiryDate) {
         withContext(Dispatchers.IO) {
             databaseDao.delete(expiryDate)
         }
+    }
+
+    // delete expiry date and all appropriate notifications
+    private suspend fun onDeleteExpiryDateAndNotifications(expiryDate: ExpiryDate) {
+        // application context
+        val application = getApplication<Application>()
+        // find notifications for this expiry date
+        val notifications = withContext(Dispatchers.IO) {
+            databaseDao.getNotificationsByExpiryDate(expiryDate.expiryDateId)
+        }
+        // cancel all notifications in alarm manager
+        val alarmManager =
+            application.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        // iterate, cancel and delete
+        notifications.forEach {  notification ->
+            val id = notification.notificationId.toInt()
+            // cancel
+            val cancelIntent = Intent(application, NotificationReceiver::class.java)
+            val pendingCancelIntent = PendingIntent.getBroadcast(application, id, cancelIntent, PendingIntent.FLAG_ONE_SHOT)
+            alarmManager.cancel(pendingCancelIntent)
+            pendingCancelIntent.cancel()
+            // delete
+            withContext(Dispatchers.IO) {
+                databaseDao.delete(notification)
+            }
+        }
+        // delete expiry date after all notifications was canceled and deleted
+        deleteExpiryDate(expiryDate)
+
+        // done :)
     }
 
     // to calculate number of spans(columns)
@@ -511,23 +595,12 @@ class ProductShelfViewModel(
         }
     }
 
-    // TODO to override this method. this method written like that for test reasons
-    private fun getNotificationsTestDaysLeft() = mutableListOf<Int>().apply {
-        add(5)
-        add(4)
-        add(3)
-        add(2)
-        add(1)
-    }
-
     // to schedule notification for the future, n days before product expires
     private suspend fun schedulePendingNotifications(title: String, expiryDate: Int, imagePath: String?, expiryDateId: Long) {
         val application = getApplication<Application>()
         val alarmManager = application.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        // all days before exp. date to notify
-        val daysBefore = getNotificationsTestDaysLeft()
-        val notificationTimes = getNotificationTimes(9,21, expiryDate, daysBefore)
+        val notificationTimes = getNotificationTimes(expiryDate)
 
         // save notifications into database
         val ids = LongArray(notificationTimes.size) {
@@ -562,30 +635,37 @@ class ProductShelfViewModel(
                 }
             }
         }
-
     }
 
-    fun getNotificationTimes(
-        workingHourStart: Int,
-        workingHourEnd: Int,
-        expiryDate: Int,
-        daysBefore: List<Int>
-    ): List<Long> {
+    private fun getNotificationTimes(expiryDate: Int): List<Long> {
 
-        val timeLeft = ProductUtils.convertExpiryDateToTimeLeft(expiryDate)
+        // application context
+        val application = getApplication<Application>()
 
-        val fullDaysLeft = ProductUtils.convertTimeLeftToFullDaysLeft(timeLeft)
+        // notification helper
+        val helper = NotificationOptionsHelper(application)
+        // notification hour
+        val hour = helper.getNotificationHour()
+        // to notify or not array
+        val notifyArray = helper.getDaysBeforeArray()
+
+        val fullDaysLeft = ProductUtils.convertTimeLeftToFullDaysLeft(
+            ProductUtils.convertExpiryDateToTimeLeft(expiryDate)
+        )
+        val daysBefore = when {
+            fullDaysLeft > NotificationConstants.MAX_DAYS_BEFORE -> NotificationConstants.MAX_DAYS_BEFORE
+            else -> fullDaysLeft
+        }
+
+        // expiry date in milliseconds
+        val expiryDateMillis = ProductUtils.convertExpiryDateIntoMillis(expiryDate)
 
         val notificationTimes = mutableListOf<Long>()
 
-        daysBefore.forEach { days ->
-            if (days < fullDaysLeft) {
-
-                // daysBefore + some n of hour into the future to show in the morning
-                // TODO this logic can be reviewed in the future
-                val notificationTime =
-                    ProductUtils.convertExpiryDateIntoMillis(expiryDate) + 1 - days * 24 * 60 * 60 * 1000 + workingHourStart * 60 * 60 * 1000
-
+        // iterate
+        for (day in 0 until daysBefore) {
+            if (notifyArray[day]) {
+                val notificationTime = expiryDateMillis + 1 - (day + 1)*24*60*60*1000 + hour*60*60*1000
                 notificationTimes.add(notificationTime)
             }
         }
@@ -663,5 +743,6 @@ class ProductShelfViewModel(
     override fun onCleared() {
         super.onCleared()
         viewModelJob.cancel()
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
     }
 }

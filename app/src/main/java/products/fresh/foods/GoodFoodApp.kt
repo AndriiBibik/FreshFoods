@@ -10,6 +10,7 @@ class GoodFoodApp : Application() {
     companion object {
         lateinit var instance: GoodFoodApp private set
         const val CHANNEL_ID = "channelId"
+        const val APP_SHARED_PREFERENCES = "app_shared_preferences"
     }
 
     override fun onCreate() {

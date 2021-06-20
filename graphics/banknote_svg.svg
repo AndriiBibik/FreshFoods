@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
+   sodipodi:docname="banknote_svg.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="217.65275"
+     inkscape:cy="65.564023"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     inkscape:pagecheckerboard="true"
+     inkscape:window-width="1366"
+     inkscape:window-height="706"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-229.26665)">
+    <g
+       id="g4945"
+       transform="matrix(0.34558637,0,0,0.34558637,-437.05295,112.41333)">
+      <path
+         id="rect4758-0"
+         d="m 1299.3418,512.55571 v 388.57032 h 671.4277 V 512.55571 Z"
+         style="opacity:1;fill:#aade87;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:28.85614586;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+         inkscape:connector-curvature="0" />
+      <path
+         id="rect4758"
+         transform="translate(0,229.26665)"
+         d="m 1299.3418,283.28906 v 388.57032 h 671.4277 V 283.28906 Z m 146.8281,59.79102 h 376.4102 a 78.571426,78.571426 0 0 0 -1.8086,16.38281 78.571426,78.571426 0 0 0 78.5703,78.57031 78.571426,78.571426 0 0 0 17.5566,-2.10156 v 83.31445 a 78.571426,78.571426 0 0 0 -17.5566,-2.13281 78.571426,78.571426 0 0 0 -78.5703,78.57031 78.571426,78.571426 0 0 0 1.4687,14.4961 h -375.7617 a 78.571426,78.571426 0 0 0 1.5235,-14.4961 78.571426,78.571426 0 0 0 -78.5704,-78.57031 78.571426,78.571426 0 0 0 -16.2187,1.7793 v -82.6875 a 78.571426,78.571426 0 0 0 16.2187,1.82812 78.571426,78.571426 0 0 0 78.5704,-78.57031 78.571426,78.571426 0 0 0 -1.8321,-16.38281 z"
+         style="opacity:1;fill:#71c837;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:28.85614586;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+         inkscape:connector-curvature="0" />
+      <ellipse
+         ry="113.13708"
+         rx="100.0051"
+         cy="705.89624"
+         cx="1634.0458"
+         id="path4914"
+         style="opacity:1;fill:#71c837;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:34.19169998;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke" />
+      <text
+         id="text4918"
+         y="770.42914"
+         x="1581.925"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:16px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';letter-spacing:0px;word-spacing:0px;fill:#f7fef1;fill-opacity:1;stroke:none"
+         xml:space="preserve"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:206.66667175px;font-family:Calibri;-inkscape-font-specification:'Calibri Bold';fill:#f7fef1;fill-opacity:1"
+           y="770.42914"
+           x="1581.925"
+           id="tspan4916"
+           sodipodi:role="line">$</tspan></text>
+    </g>
+  </g>
+</svg>

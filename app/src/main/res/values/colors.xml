@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#6ab343</color>
+    <color name="colorPrimaryLight">#B0F989</color>
     <color name="colorPrimaryDark">#388310</color>
     <color name="colorAccent">#6ab343</color>
     <color name="colorPrimaryText">#212121</color>
@@ -36,5 +37,8 @@
         <item>#00dc00</item><!--6-->
         <item>#9E9E9E</item><!--expired-->
     </string-array>
+
+    <!--general options-->
+    <color name="disabled_text_color">#BDBDBD</color>
 
 </resources>
