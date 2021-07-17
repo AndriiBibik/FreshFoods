@@ -38,5 +38,8 @@ class NotificationConstants {
         const val DEFAULT_DELETE_DAYS = 7
         const val DELETE_DAYS_KEY = "delete_days"
         const val NEVER_DELETE_CHECKBOX_KEY = "never_delete_checkbox"
+
+        // to delete notifications if shown
+        const val NOTIFICATIONS_TO_DELETE_KEY = "notifications_to_delete"
     }
 }

@@ -6,13 +6,14 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import products.fresh.foods.GoodFoodApp
 import products.fresh.foods.MainActivity
 import products.fresh.foods.R
+import products.fresh.foods.notifications.NotificationConstants.Companion.DIVIDER
+import products.fresh.foods.notifications.NotificationConstants.Companion.NOTIFICATIONS_TO_DELETE_KEY
+import products.fresh.foods.notifications.NotificationConstants.Companion.NOTIFICATION_SHARED_PREFERENCES
 import products.fresh.foods.utils.ProductUtils
 
 class NotificationReceiver : BroadcastReceiver() {
@@ -21,6 +22,7 @@ class NotificationReceiver : BroadcastReceiver() {
     private lateinit var notificationManager: NotificationManagerCompat
 
     override fun onReceive(context: Context?, intent: Intent?) {
+        var notificationId = -1L
         val notification = context?.let { context ->
             intent?.let { intent ->
                 // initializing notification manager
@@ -35,6 +37,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 val itemImagePath = intent.getStringExtra(NotificationConstants.IMAGE_PATH_KEY)
                 val notificationsIds = intent.getLongArrayExtra(NotificationConstants.ALL_NOTIFICATIONS_KEY)
 
+                notificationId = intent.getLongExtra(NotificationConstants.NOTIFICATION_ID_KEY, -1L)
 
                 // on notification click intent
                 val onClickIntent = Intent(context, MainActivity::class.java)
@@ -51,21 +54,18 @@ class NotificationReceiver : BroadcastReceiver() {
 
                 // build notification
                 NotificationCompat.Builder(context, GoodFoodApp.CHANNEL_ID)
-                    .setSmallIcon(R.drawable.ic_carrot_down)
+                    .setSmallIcon(R.drawable.ic_cherries)
                     .setContentText(productTitle)
-//                    .setCategory(NotificationCompat.CATEGORY_REMINDER)
                     .setAutoCancel(true)
                     .setContentIntent(onClickPendingIntent)
                     .setGroup(NotificationConstants.GROUP)
-                    .setAutoCancel(true)
-                    .addAction(R.drawable.ic_cookie_delete, buttonText, buttonPendingIntent)
+                    .addAction(0, buttonText, buttonPendingIntent)
                     .apply {
                         if (expiryDate != -1) {
                             val timeLeft = ProductUtils.convertExpiryDateToTimeLeft(expiryDate)
                             val daysN = ProductUtils.millisecondsIntoDays(timeLeft)
                             val hoursN = ProductUtils.millisecondsIntoHours(timeLeft)
                             val minN = ProductUtils.millisecondsIntoMinutes(timeLeft)
-                            // TODO to use later string resources instead of hardcoded text
                             val timeLeftText = String.format(
                                 "%d ${res.getString(R.string.days_shortcut)} " +
                                         "%02d${res.getString(R.string.hours_shortcut)} " +
@@ -100,8 +100,14 @@ class NotificationReceiver : BroadcastReceiver() {
                 intent?.getLongExtra(NotificationConstants.EXPIRY_DATE_ID_KEY, -1L)
             if (id != null && id != -1L) {
                 notificationManager.notify(id.toInt(), notification)
+                // save notification id into shared prefs to delete it in the app
+                // after it was shown by line above
+                if (notificationId != -1L) {
+                    val sp = context.getSharedPreferences(NOTIFICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE)
+                    val idsToDelete = "${sp.getString(NOTIFICATIONS_TO_DELETE_KEY, "")}$notificationId$DIVIDER"
+                    sp.edit().putString(NOTIFICATIONS_TO_DELETE_KEY, idsToDelete).apply()
+                }
             }
-
         }
     }
 }

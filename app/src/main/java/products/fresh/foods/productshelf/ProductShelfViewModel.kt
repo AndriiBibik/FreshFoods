@@ -14,6 +14,7 @@ import android.media.ExifInterface
 import android.media.ThumbnailUtils
 import android.os.Build
 import android.os.Environment
+import android.support.v4.os.IResultReceiver
 import android.util.Log
 import android.util.TypedValue
 import androidx.core.content.ContextCompat
@@ -33,6 +34,9 @@ import products.fresh.foods.database.Product
 import products.fresh.foods.database.ProductDatabaseDao
 import products.fresh.foods.notifications.NotificationButtonReceiver
 import products.fresh.foods.notifications.NotificationConstants
+import products.fresh.foods.notifications.NotificationConstants.Companion.DEFAULT_DELETE_DAYS
+import products.fresh.foods.notifications.NotificationConstants.Companion.DELETE_DAYS_KEY
+import products.fresh.foods.notifications.NotificationConstants.Companion.NEVER_DELETE_CHECKBOX_KEY
 import products.fresh.foods.notifications.NotificationReceiver
 import products.fresh.foods.utils.ProductUtils
 import java.io.File
@@ -41,6 +45,7 @@ import java.io.IOException
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.regex.Pattern
 
 class ProductShelfViewModel(
     private val databaseDao: ProductDatabaseDao, application: Application
@@ -91,10 +96,16 @@ class ProductShelfViewModel(
         editor.putString(key, idsString).apply()
     }
 
+    // camera photo path when picture is taken
+    var cameraPhotoPath: String? = null
+
     // when start view mode
     init {
         sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
         triggerSPChaneListener()
+        uiScope.launch {
+            deleteExpiryDatesConsideringDeleteDays()
+        }
     }
 
     // actions when shared preferences expiry dates ids to delete changes
@@ -110,8 +121,8 @@ class ProductShelfViewModel(
             // delete expiry date
             uiScope.launch {
                 withContext(Dispatchers.IO) {
+                    //notifications pending intents deletes immediately after "Eaten! button press
                     databaseDao.deleteExpiryDateById(lastId.toLong())
-                    databaseDao.deleteNotificationsForExpiryDate(lastId.toLong())
                 }
             }
             // to get string of ids without last id and without divider
@@ -138,6 +149,45 @@ class ProductShelfViewModel(
         sharedPreferences.edit().putInt(SPINNER_ID_KEY, pos).apply()
     }
 
+    // list of notifications to delete them from shared preferences if needed
+    val notificationsList = databaseDao.getNotifications()
+    // notifications ids list based on list above
+    val notificationsIdsList = Transformations.map(notificationsList) { notifications ->
+        arrayListOf<Long>().apply {
+            notifications.forEach { notification -> add(notification.notificationId) }
+        }
+    }
+    // to process notifications ids (shared preferences) in a background thread
+    fun processNotificationsIdsInSP(notificationsIds: List<Long>) {
+        uiScope.launch {
+            withContext(Dispatchers.Default) {
+
+                val sp = getApplication<Application>().getSharedPreferences(NotificationConstants.NOTIFICATION_SHARED_PREFERENCES, Context.MODE_PRIVATE)
+                val idsFromSP = arrayListOf<Long>().apply {
+                    val idsString = sp.getString(NotificationConstants.NOTIFICATIONS_TO_DELETE_KEY, "")
+                    val matcher = Pattern.compile("\\d+").matcher(idsString)
+                    while (matcher.find()) {
+                        this.add(matcher.group().toLong())
+                    }
+                }
+                val idsToRemove = arrayListOf<Long>().apply {
+                    addAll(idsFromSP)
+                    removeAll(notificationsIds)
+                }
+                val newSPIds = arrayListOf<Long>().apply {
+                    addAll(idsFromSP)
+                    removeAll(idsToRemove)
+                }
+                var newIdsString = ""
+                newSPIds.forEach {
+                    newIdsString += "$it${NotificationConstants.DIVIDER}"
+                }
+                //write
+                sp.edit().putString(NotificationConstants.NOTIFICATIONS_TO_DELETE_KEY, newIdsString).apply()
+            }
+        }
+    }
+
     // list of product for suggestions in enter product title field
     val productsList = databaseDao.getAllProductsByTitleAsc()
 
@@ -147,10 +197,10 @@ class ProductShelfViewModel(
     // actual sorted list that we going to use. This list is based on "list" above and "sortType"
     val sortedList = Transformations.switchMap(sortSpinnerPos) { pos ->
         when (pos) {
-            SPINNER_ID_TIME_LEFT_ASC -> databaseDao.getAllProductsAndExpiryDatesByTimeLeftAsc()//0
-            SPINNER_ID_TIME_LEFT_DESC -> databaseDao.getAllProductsAndExpiryDatesByTimeLeftDesc()//1
-            SPINNER_ID_TIME_ADDED_ASC -> databaseDao.getAllProductsAndExpiryDatesDesc()//3
-            else -> databaseDao.getAllProductsAndExpiryDates() //2
+            SPINNER_ID_TIME_LEFT_ASC -> databaseDao.getAllProductsAndExpiryDatesWithNotificationsByTimeLeftAsc()//0
+            SPINNER_ID_TIME_LEFT_DESC -> databaseDao.getAllProductsAndExpiryDatesWithNotificationsByTimeLeftDesc()//1
+            SPINNER_ID_TIME_ADDED_ASC -> databaseDao.getAllProductsAndExpiryDatesWithNotificationsDesc()//3
+            else -> databaseDao.getAllProductsAndExpiryDatesWithNotifications() //2
         }
     }
 
@@ -176,9 +226,6 @@ class ProductShelfViewModel(
     fun resetExpiryDate() {
         _expiryDate.value = null
     }
-
-    // current photo path
-    private lateinit var currentPhotoPath: String
 
     // list in full screen or not
     private val _isListFullScreen = MutableLiveData<Boolean>(false)
@@ -283,13 +330,44 @@ class ProductShelfViewModel(
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val pos = viewHolder.adapterPosition
-                val ed = sortedList.value?.get(pos)?.expiryDate?.let { expiryDate ->
+                val ed = sortedList.value?.get(pos)?.expiryDateWithNotifications?.expiryDate?.let { expiryDate ->
                     uiScope.launch {
-                        onDeleteExpiryDateAndNotifications(expiryDate)
+                        onDeleteExpiryDateAndNotifications(expiryDate.expiryDateId)
                     }
                 }
             }
         }
+
+    // to delete all expiry dates automatically when products expired
+    // for more days then it is selected in options
+    private suspend fun deleteExpiryDatesConsideringDeleteDays() {
+        withContext(Dispatchers.IO) {
+
+            val sp = getApplication<Application>()
+                .getSharedPreferences(
+                    NotificationConstants.NOTIFICATION_SHARED_PREFERENCES,
+                    Context.MODE_PRIVATE)
+
+            val deleteDays = sp.getInt(DELETE_DAYS_KEY, DEFAULT_DELETE_DAYS)
+
+            // check if user wants to delete expiry dates
+            if (!sp.getBoolean(NEVER_DELETE_CHECKBOX_KEY, false)) {
+
+                val deleteDate = Calendar.getInstance().apply {
+                    timeInMillis = Date().time - deleteDays*24*60*60*1000
+                }
+                val year = deleteDate.get(Calendar.YEAR)
+                val month = deleteDate.get(Calendar.MONTH) + 1
+                val day = deleteDate.get(Calendar.DATE)
+                val deleteDateString = String.format("%d%02d%02d", year, month, day)
+                val deleteDateInt = deleteDateString.toInt()
+
+                // makes no sense to delete also pending intents for notifications
+                // after expiration date
+                databaseDao.deleteAllExpiryDatesConsideringDeleteDate(deleteDateInt)
+            }
+        }
+    }
 
     // to delete Expiry Date from database
     private suspend fun deleteExpiryDate(expiryDate: ExpiryDate) {
@@ -299,17 +377,17 @@ class ProductShelfViewModel(
     }
 
     // delete expiry date and all appropriate notifications
-    private suspend fun onDeleteExpiryDateAndNotifications(expiryDate: ExpiryDate) {
+    private suspend fun onDeleteExpiryDateAndNotifications(expiryDateId: Long) {
         // application context
         val application = getApplication<Application>()
         // find notifications for this expiry date
         val notifications = withContext(Dispatchers.IO) {
-            databaseDao.getNotificationsByExpiryDate(expiryDate.expiryDateId)
+            databaseDao.getNotificationsByExpiryDate(expiryDateId)
         }
         // cancel all notifications in alarm manager
         val alarmManager =
             application.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        // iterate, cancel and delete
+        // iterate, cancel notifications
         notifications.forEach {  notification ->
             val id = notification.notificationId.toInt()
             // cancel
@@ -317,13 +395,11 @@ class ProductShelfViewModel(
             val pendingCancelIntent = PendingIntent.getBroadcast(application, id, cancelIntent, PendingIntent.FLAG_ONE_SHOT)
             alarmManager.cancel(pendingCancelIntent)
             pendingCancelIntent.cancel()
-            // delete
-            withContext(Dispatchers.IO) {
-                databaseDao.delete(notification)
-            }
         }
-        // delete expiry date after all notifications was canceled and deleted
-        deleteExpiryDate(expiryDate)
+        // delete expiry date after all notifications was canceled
+        withContext(Dispatchers.IO) {
+            databaseDao.deleteExpiryDateById(expiryDateId)
+        }
 
         // done :)
     }
@@ -348,13 +424,13 @@ class ProductShelfViewModel(
     ///////////// working with product image /////////////
     // to prepare images from path
 
-    fun processImages() {
+    fun processImages(absolutePhotoPath: String) {
 
         uiScope.launch {
             // image started processing
             _isImageProcessing.value = true
 
-            val imageBitmaps = prepareImageBitmaps(currentPhotoPath)
+            val imageBitmaps = prepareImageBitmaps(absolutePhotoPath)
             imageBitmaps?.let {
                 _productImages.value = it
             }
@@ -496,9 +572,7 @@ class ProductShelfViewModel(
             imageName, /* prefix */
             ".jpg", /* suffix */
             storageDir /* directory */
-        ).also { file ->
-            currentPhotoPath = file.absolutePath
-        }
+        )
     }
     //
     //
@@ -606,6 +680,7 @@ class ProductShelfViewModel(
         val ids = LongArray(notificationTimes.size) {
             insertNotification(Notification(expiryDateId))
         }
+        val testTime = Date().time
 
         // iterate to set all notifications
         notificationTimes.forEachIndexed {  idx, time ->
@@ -625,13 +700,15 @@ class ProductShelfViewModel(
                 intent.putExtra(NotificationConstants.IMAGE_PATH_KEY, imagePath)
                 intent.putExtra(NotificationConstants.ALL_NOTIFICATIONS_KEY, ids)
 
+                // pending intent for alarm manager
+                val pendingIntent =
+                    PendingIntent.getBroadcast(application, notificationId.toInt(), intent, PendingIntent.FLAG_ONE_SHOT)
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-
-                    val pendingIntent =
-                        PendingIntent.getBroadcast(application, notificationId.toInt(), intent, PendingIntent.FLAG_ONE_SHOT)
-
-                    // observation: if pending intent request code same - it rewrites
-                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+//                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, (testTime + (idx+1)*5000), pendingIntent)
+                } else { // for lower APIs: 16,17,18
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, (testTime + (idx+1)*5000), pendingIntent)
                 }
             }
         }

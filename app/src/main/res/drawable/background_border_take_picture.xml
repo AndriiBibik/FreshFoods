@@ -6,9 +6,9 @@
         android:topRightRadius="0dp"
         android:bottomRightRadius="0dp"
         android:bottomLeftRadius="0dp" />
+    <solid android:color="@android:color/transparent"/>
     <stroke
         android:width="2dp"
         android:color="@color/color_take_picture_border" />
-    <solid
-        android:color="@color/color_take_picture_background" />
+    />
 </shape>

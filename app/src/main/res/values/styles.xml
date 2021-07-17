@@ -1,24 +1,36 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="BaseAppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:textColor">@color/colorPrimaryText</item>
+        <item name="listBarColor">#00ffffff</item>
+        <item name="productShelfFragmentBottomBackground">@color/color_host_fragment_background_day</item>
+        <item name="toolbarColor">@color/colorPrimary</item>
+        <item name="gridItemBackground">@color/white</item>
+        <item name="disabledTextColorInOptions">@color/disabled_text_color</item>
+        <item name="appBackground">@color/colorAppBackground</item>
+        <item name="listItemSecondaryText">@color/listItemSecondaryText</item>
     </style>
 
-    <!--Toolbar-->
-    <style name="AppTheme.Toolbar" parent="AppTheme">
-<!--        &lt;!&ndash;This line changes the color of text in Toolbar&ndash;&gt;-->
-<!--        <item name="android:textColorPrimary">@color/black</item>-->
-<!--        &lt;!&ndash;This line changes the color of icons in toolbar (back, overflow menu icons)&ndash;&gt;-->
-<!--        <item name="android:textColorSecondary">@color/azul</item>-->
-<!--        <item name="textAllCaps">false</item>-->
-        <item name="android:fontFamily">@font/lobster_regular</item>
-        <item name="android:textSize">@dimen/toolbar_text_size</item>
-        <item name="android:textColor">@color/colorPrimary</item>
+    <!-- Dark application theme. -->
+    <style name="DarkAppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimaryDarkTheme</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkDarkTheme</item>
+        <item name="colorAccent">@color/colorAccentDarkTheme</item>
+        <item name="android:textColor">@color/colorPrimaryTextDarkTheme</item>
+        <item name="android:textColorSecondary">@color/white</item>
+        <item name="listBarColor">#D8121212</item>
+        <item name="productShelfFragmentBottomBackground">@color/color_host_fragment_background_night</item>
+        <item name="toolbarColor">#17FFFFFF</item>
+        <item name="gridItemBackground">#232323</item>
+        <item name="disabledTextColorInOptions">@color/disabledTextColorDarkTheme</item>
+        <item name="appBackground">@color/colorAppBackgroundDarkTheme</item>
+        <item name="listItemSecondaryText">@color/listItemSecondaryTextDarkTheme</item>
     </style>
 
     <!--Material buttons-->
@@ -31,6 +43,11 @@
         <item name="android:minWidth">28dp</item>
         <item name="android:minHeight">28dp</item>
         <item name="iconGravity">textStart</item>
+    </style>
+
+    <style name="checkBoxStyle" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorAccent">@color/colorPrimary</item>
+        <item name="android:textColorSecondary">@color/colorSecondaryTextDarkTheme</item>
     </style>
 
 </resources>

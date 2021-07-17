@@ -6,7 +6,7 @@
         android:id="@+id/fragment_product_shelf_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/color_host_fragment_background"
+        android:background="?attr/productShelfFragmentBottomBackground"
         android:orientation="horizontal">
 
         <include

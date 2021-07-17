@@ -46,8 +46,8 @@
     </string-array>
 
     <!--notifications-->
-    <string name="notifications_channel_name">\"time left to consume a product\"</string>
-    <string name="notifications_channel_description">This is notifications channel</string>
+    <string name="notifications_channel_name">Keep Your products safe NOTIFICATION CHANNEL</string>
+    <string name="notifications_channel_description">Always fresh products by getting notified!</string>
     <string name="notification_button_eaten">EATEN!</string>
 
     <!--Asking if notify dialog-->

@@ -1,6 +1,11 @@
 package products.fresh.foods.productshelf
 
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.util.Log
+import android.util.TypedValue
+import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -8,8 +13,12 @@ import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.setPadding
+import androidx.core.view.updatePadding
+import androidx.core.widget.CompoundButtonCompat
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.slider.Slider
 import org.w3c.dom.Text
 import products.fresh.foods.R
@@ -104,17 +113,33 @@ class NotificationOptionsHelper(val context: Context) {
             // default never delete checkbox value
             val isNeverDeleteChecked = sharedPreferences.getBoolean(NEVER_DELETE_CHECKBOX_KEY, false)
             if (isNeverDeleteChecked) {
+                // disabled
+                val disabledTypedValue = TypedValue()
+                context.theme.resolveAttribute(R.attr.disabledTextColorInOptions, disabledTypedValue, true)
+                val disabledTextColor = disabledTypedValue.data
+
                 neverCheckBox.isChecked = isNeverDeleteChecked
-                daysTextView.setTextColor(ContextCompat.getColor(context, R.color.disabled_text_color))
+                daysTextView.setTextColor(disabledTextColor)
             }
             neverCheckBox.setOnCheckedChangeListener { buttonView, isChecked ->
+                // to get color attributes
+                // base
+                val typedValue = TypedValue()
+                context.theme.resolveAttribute(android.R.attr.textColor, typedValue, true)
+                val baseTextColor = typedValue.data
+                // disabled
+                val disabledTypedValue = TypedValue()
+                context.theme.resolveAttribute(R.attr.disabledTextColorInOptions, disabledTypedValue, true)
+                val disabledTextColor = disabledTypedValue.data
+                //
+
                 when(isChecked) {
                     true -> {
-                        daysTextView.setTextColor(ContextCompat.getColor(context, R.color.disabled_text_color))
+                        daysTextView.setTextColor(disabledTextColor)
                         editor.putBoolean(NEVER_DELETE_CHECKBOX_KEY, true).apply()
                     }
                     false -> {
-                        daysTextView.setTextColor(ContextCompat.getColor(context, R.color.colorPrimaryText))
+                        daysTextView.setTextColor(baseTextColor)
                         editor.putBoolean(NEVER_DELETE_CHECKBOX_KEY, false).apply()
                     }
                 }
@@ -180,9 +205,12 @@ class NotificationOptionsHelper(val context: Context) {
         // set this text to textview
         titleTextView.text = title
         // checkbox. notify or not for days left
-        val notifyCheckBox = CheckBox(context).apply {
+        val notifyCheckBox = MaterialCheckBox(context).apply {
             setChecked(isChecked)
             gravity = Gravity.CENTER_HORIZONTAL
+            minimumWidth = 0
+            minimumHeight = 0
+            minWidth = 0
         }
         // on checkbox listener
         notifyCheckBox.setOnCheckedChangeListener { compoundButton, isChecked ->

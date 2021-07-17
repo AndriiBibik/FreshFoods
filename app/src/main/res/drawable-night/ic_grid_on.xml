@@ -1,0 +1,42 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="128dp"
+    android:height="128dp"
+    android:viewportWidth="128"
+    android:viewportHeight="128">
+  <path
+      android:pathData="m39.218,23.629a15.64,15.64 0,0 1,-15.64 15.64,15.64 15.64,0 0,1 -15.64,-15.64 15.64,15.64 0,0 1,15.64 -15.64,15.64 15.64,0 0,1 15.64,15.64z"
+      android:fillColor="#FFFFFF"
+      android:fillType="nonZero"/>
+  <path
+      android:pathData="m39.218,64a15.64,15.64 0,0 1,-15.64 15.64,15.64 15.64,0 0,1 -15.64,-15.64 15.64,15.64 0,0 1,15.64 -15.64,15.64 15.64,0 0,1 15.64,15.64z"
+      android:fillColor="#FFFFFF"
+      android:fillType="nonZero"/>
+  <path
+      android:pathData="M39.218,104.371A15.64,15.64 0,0 1,23.578 120.01,15.64 15.64,0 0,1 7.938,104.371 15.64,15.64 0,0 1,23.578 88.731,15.64 15.64,0 0,1 39.218,104.371Z"
+      android:fillColor="#FFFFFF"
+      android:fillType="nonZero"/>
+  <path
+      android:pathData="m64.051,8.104a15.64,15.64 0,0 0,-15.64 15.64,15.64 15.64,0 0,0 15.64,15.64 15.64,15.64 0,0 0,15.64 -15.64,15.64 15.64,0 0,0 -15.64,-15.64z"
+      android:fillColor="#FFFFFF"
+      android:fillType="nonZero"/>
+  <path
+      android:pathData="m104.422,8.104a15.64,15.64 0,0 0,-15.64 15.64,15.64 15.64,0 0,0 15.64,15.64 15.64,15.64 0,0 0,15.64 -15.64,15.64 15.64,0 0,0 -15.64,-15.64z"
+      android:fillColor="#FFFFFF"
+      android:fillType="nonZero"/>
+  <path
+      android:pathData="m63.955,48.355a15.64,15.64 0,0 0,-15.64 15.64,15.64 15.64,0 0,0 15.64,15.64 15.64,15.64 0,0 0,15.64 -15.64,15.64 15.64,0 0,0 -15.64,-15.64z"
+      android:fillColor="#FFFFFF"
+      android:fillType="nonZero"/>
+  <path
+      android:pathData="m104.326,48.355a15.64,15.64 0,0 0,-15.64 15.64,15.64 15.64,0 0,0 15.64,15.64 15.64,15.64 0,0 0,15.64 -15.64,15.64 15.64,0 0,0 -15.64,-15.64z"
+      android:fillColor="#FFFFFF"
+      android:fillType="nonZero"/>
+  <path
+      android:pathData="m63.884,88.641a15.64,15.64 0,0 0,-15.64 15.64,15.64 15.64,0 0,0 15.64,15.64 15.64,15.64 0,0 0,15.64 -15.64,15.64 15.64,0 0,0 -15.64,-15.64z"
+      android:fillColor="#FFFFFF"
+      android:fillType="nonZero"/>
+  <path
+      android:pathData="m104.255,88.641a15.64,15.64 0,0 0,-15.64 15.64,15.64 15.64,0 0,0 15.64,15.64 15.64,15.64 0,0 0,15.64 -15.64,15.64 15.64,0 0,0 -15.64,-15.64z"
+      android:fillColor="#FFFFFF"
+      android:fillType="nonZero"/>
+</vector>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ds">
+        <attr name="listBarColor" format="color"/>
+        <attr name="productShelfFragmentBottomBackground" format="color"/>
+        <attr name="appBackground" format="color"/>
+        <attr name="toolbarColor" format="color"/>
+        <attr name="gridItemBackground" format="color"/>
+        <attr name="disabledTextColorInOptions" format="color"/>
+        <attr name="listItemSecondaryText" format="color"/>
+    </declare-styleable>
+</resources>

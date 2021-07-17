@@ -5,7 +5,7 @@
     <color name="colorPrimaryDark">#388310</color>
     <color name="colorAccent">#6ab343</color>
     <color name="colorPrimaryText">#212121</color>
-    <color name="colorSecondaryText">#616161</color>
+    <color name="listItemSecondaryText">#616161</color>
 
     <!--recycler view item background when swipe to delete-->
     <color name="itemBackground">#FF0000</color>
@@ -17,11 +17,13 @@
     <color name="product_list_divider">#1F000000</color>
 
     <!--host fragment-->
-    <color name="color_host_fragment_background">#d3d3d3</color>
+    <color name="color_host_fragment_background_day">#d3d3d3</color>
+    <color name="color_host_fragment_background_night">#000000</color>
     <color name="color_basic_light_background">#fafafa</color>
     <color name="color_take_picture_border">#757575</color>
     <color name="color_take_picture_background">#f0f0f0</color>
     <color name="color_choose_product_border">#cccccc</color>
+    <color name="colorAppBackground">#fafafa</color>
 
     <!--Spinner-->
     <color name="spinner_stroke_color">#757575</color>
@@ -40,5 +42,21 @@
 
     <!--general options-->
     <color name="disabled_text_color">#BDBDBD</color>
+    <color name="no_notifications_ic_color">#c8c8c8</color>
+
+    <!--circular background for notifications icon-->
+    <color name="white_semitransparent">#F2FFFFFF</color>
+    <color name="black_semitransparent">#B2000000</color>
+
+    <!--Dark theme-->
+    <color name="colorPrimaryDarkTheme">#a0f572</color>
+    <color name="colorPrimaryLightDarkTheme">#B0F989</color>
+    <color name="colorPrimaryDarkDarkTheme">#000000</color>
+    <color name="colorAccentDarkTheme">#a0f572</color>
+    <color name="colorPrimaryTextDarkTheme">@color/white</color>
+    <color name="colorSecondaryTextDarkTheme">#616161</color>
+    <color name="disabledTextColorDarkTheme">#33ffffff</color>
+    <color name="colorAppBackgroundDarkTheme">#121212</color>
+    <color name="listItemSecondaryTextDarkTheme">#98ffffff</color>
 
 </resources>

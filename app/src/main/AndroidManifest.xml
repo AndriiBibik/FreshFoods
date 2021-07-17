@@ -13,7 +13,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:name=".GoodFoodApp"
-        android:theme="@style/AppTheme">
+        android:theme="@style/BaseAppTheme">
 
         <provider
             android:name="androidx.core.content.FileProvider"

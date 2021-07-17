@@ -11,6 +11,7 @@ class GoodFoodApp : Application() {
         lateinit var instance: GoodFoodApp private set
         const val CHANNEL_ID = "channelId"
         const val APP_SHARED_PREFERENCES = "app_shared_preferences"
+        const val IS_NIGHT_MODE = "is_night_mode"
     }
 
     override fun onCreate() {
@@ -25,8 +26,9 @@ class GoodFoodApp : Application() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 resources.getString(R.string.notifications_channel_name),
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             )
+            channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             channel.description = resources.getString(R.string.notifications_channel_description)
 
             val manager = getSystemService(NotificationManager::class.java)

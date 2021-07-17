@@ -4,6 +4,7 @@
     <!--Toolbar-->
     <dimen name="toolbar_elevation">4dp</dimen>
     <dimen name="toolbar_text_size">24sp</dimen>
+    <dimen name="toolbar_day_night_right">8dp</dimen>
 
     <!--choose a product from existing container-->
     <dimen name="button_brush_ic_size">24dp</dimen>
@@ -71,6 +72,9 @@
     <dimen name="product_grid_bottom_padding">4dp</dimen>
     <dimen name="product_grid_item_margin">4dp</dimen>
     <dimen name="product_grid_item_elevation">2dp</dimen>
+    <dimen name="product_grid_item_circle_size">26dp</dimen>
+    <dimen name="product_grid_item_notification_ic_size">20dp</dimen>
+    <dimen name="product_grid_item_circle_margin">4dp</dimen>
 
     <!--products list spinner-->
     <dimen name="item_spinner_text_size">24sp</dimen>
@@ -92,6 +96,8 @@
     <dimen name="details_layout_days_left">18sp</dimen>
     <dimen name="details_layout_padding">16sp</dimen>
     <dimen name="details_layout_items_space">16dp</dimen>
+    <dimen name="details_layout_notification_ic_size">18dp</dimen>
+    <dimen name="details_layout_notification_ic_top_margin">4dp</dimen>
 
     <!--notification options dialog-->
     <dimen name="notification_options_hour_number_left_margin">8dp</dimen>

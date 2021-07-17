@@ -3,6 +3,7 @@ package products.fresh.foods.productshelf
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -20,6 +21,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.content.FileProvider
 import androidx.core.view.doOnLayout
 import androidx.databinding.DataBindingUtil
@@ -38,7 +40,7 @@ import kotlinx.android.synthetic.main.layout_product_list.view.*
 import products.fresh.foods.MainActivity
 import products.fresh.foods.R
 import products.fresh.foods.database.Product
-import products.fresh.foods.database.ProductAndExpiryDate
+import products.fresh.foods.database.ProductAndExpiryDateWithNotifications
 import products.fresh.foods.database.ProductDatabase
 import products.fresh.foods.databinding.FragmentProductsShelfBinding
 import products.fresh.foods.notifications.NotificationConstants
@@ -60,7 +62,7 @@ class ProductShelfFragment : Fragment() {
 
     private lateinit var productShelfViewModel: ProductShelfViewModel
 
-    private lateinit var productAdapter: ProductAndExpiryDateAdapter
+    private lateinit var productAdapter: ProductAndExpiryDateWithNotificationsAdapter
 
     private lateinit var gridLayoutManager: GridLayoutManager
 
@@ -109,10 +111,7 @@ class ProductShelfFragment : Fragment() {
     ): View? {
 
         // set ActionBar title
-        (activity as MainActivity).setActionBarTitle(getString(R.string.product_shelf_fragment_title))
-
-//        // change actionbar color
-//        (activity as MainActivity).supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.MAGENTA))
+        (activity as MainActivity).findViewById<TextView>(R.id.toolbar_title).text = requireContext().getString(R.string.product_shelf_fragment_title)
 
         // Get a reference to the binding object and inflate the fragment views.
         binding = DataBindingUtil.inflate(
@@ -156,6 +155,12 @@ class ProductShelfFragment : Fragment() {
                 }
         })
 
+        // observe notifications to know when to delete "notif. ids to delete" from shared preferences
+        productShelfViewModel.notificationsIdsList.observe(viewLifecycleOwner, Observer { notificationsIds ->
+            // to remove notifications ids from shared preferences if needed
+            productShelfViewModel.processNotificationsIdsInSP(notificationsIds)
+        })
+
         // listener for product selected. if product selected from suggested list
         productShelfViewModel.productSelected.observe(viewLifecycleOwner, Observer { product ->
 
@@ -195,14 +200,12 @@ class ProductShelfFragment : Fragment() {
                 productShelfViewModel.getNumberOfSpans(it.width)
             )
             // init adapter
-            productAdapter = ProductAndExpiryDateAdapter(gridLayoutManager,
+            productAdapter = ProductAndExpiryDateWithNotificationsAdapter(gridLayoutManager,
                 object : OnItemClickListener {
-                    override fun onItemClick(item: ProductAndExpiryDate) {
-                        // change activity title before fragment even loads
-                        (activity as MainActivity).setActionBarTitle("Product Details")
+                    override fun onItemClick(item: ProductAndExpiryDateWithNotifications) {
                         // navigate to details page
                         val action = ProductShelfFragmentDirections
-                            .actionProductShelfFragmentToProductDetailsFragment(item.expiryDate.expiryDateId)
+                            .actionProductShelfFragmentToProductDetailsFragment(item.expiryDateWithNotifications.expiryDate.expiryDateId)
                         findNavController().navigate(action)
                     }
                 })
@@ -226,7 +229,6 @@ class ProductShelfFragment : Fragment() {
             // GridLayoutManager and Adapter are initialized, now observer on the list can be applied
             productShelfViewModel.sortedList.observe(viewLifecycleOwner, Observer { list ->
 
-                Log.v("ttt", "triggers")
                 // list is changed, so submit it to the adapter
                 productAdapter.submitList(list)
 
@@ -633,8 +635,18 @@ class ProductShelfFragment : Fragment() {
                     val photoUri = FileProvider.getUriForFile(
                         requireContext(), "products.fresh.foods.fileprovider", file
                     )
+                    // initializing global photo path to get it from onActivityResult
+                    productShelfViewModel.cameraPhotoPath = file.absolutePath
+
                     // referring to intent's apply
                     putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+
+                    // grant permissions into intent for api lower 22 inclusive
+                    if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP){
+                        clipData = ClipData.newRawUri("", photoUri)
+                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    }
+
                     startActivityForResult(this, TAKE_PICTURE_CODE)
                 }
             }
@@ -644,8 +656,13 @@ class ProductShelfFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         //called when image was captured by camera intent
         if (requestCode == TAKE_PICTURE_CODE && resultCode == Activity.RESULT_OK) {
-            // show processing indicator
-            productShelfViewModel.processImages()
+
+            // if photo path was created when camera activity opened then go ahead with processing
+            productShelfViewModel.cameraPhotoPath?.let { absolutePhotoPath ->
+                // show processing indicator and process images
+                productShelfViewModel.processImages(absolutePhotoPath)
+            }
+            
         }
         super.onActivityResult(requestCode, resultCode, data)
     }

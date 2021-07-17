@@ -9,13 +9,33 @@
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
-            android:background="@color/colorPrimary"
+            android:background="?attr/toolbarColor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:titleTextAppearance="@style/AppTheme.Toolbar"
-            android:elevation="@dimen/toolbar_elevation"/>
+            android:elevation="@dimen/toolbar_elevation">
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+                <TextView
+                    android:id="@+id/toolbar_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/lobster_regular"
+                    android:textColor="@color/white"
+                    android:text="@string/product_shelf_fragment_title"
+                    android:textSize="@dimen/toolbar_text_size"/>
+                <ImageView
+                    android:id="@+id/theme_switch_button"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    app:srcCompat="@drawable/ic_button_day_mode"
+                    android:layout_marginRight="@dimen/toolbar_day_night_right"/>
+            </RelativeLayout>
+        </androidx.appcompat.widget.Toolbar>
 
         <fragment
             android:id="@+id/main_fragment_holder"
