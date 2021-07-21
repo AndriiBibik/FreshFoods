@@ -1,26 +1,17 @@
 package products.fresh.foods.productshelf
 
 import android.content.Context
-import android.content.res.ColorStateList
-import android.graphics.Color
-import android.util.Log
 import android.util.TypedValue
-import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.content.ContextCompat
-import androidx.core.view.setPadding
-import androidx.core.view.updatePadding
-import androidx.core.widget.CompoundButtonCompat
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.slider.Slider
-import org.w3c.dom.Text
 import products.fresh.foods.R
 import products.fresh.foods.notifications.NotificationConstants
 import products.fresh.foods.notifications.NotificationConstants.Companion.DEFAULT_DELETE_DAYS

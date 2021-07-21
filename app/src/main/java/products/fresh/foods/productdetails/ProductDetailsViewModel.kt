@@ -2,11 +2,9 @@ package products.fresh.foods.productdetails
 
 import android.app.Application
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MediatorLiveData
 import kotlinx.coroutines.*
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import products.fresh.foods.R
 import products.fresh.foods.database.ProductDatabaseDao

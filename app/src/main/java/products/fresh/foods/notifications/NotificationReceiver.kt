@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import products.fresh.foods.GoodFoodApp
@@ -58,9 +59,14 @@ class NotificationReceiver : BroadcastReceiver() {
                     .setContentText(productTitle)
                     .setAutoCancel(true)
                     .setContentIntent(onClickPendingIntent)
-                    .setGroup(NotificationConstants.GROUP)
                     .addAction(0, buttonText, buttonPendingIntent)
                     .apply {
+                        //TODO int the future review if notification grouping work
+                        //TODO (if needed) And implement it right!
+                        //TODO but consider EATEN button. Maybe grouping is not necessary
+                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+                            setGroup(NotificationConstants.GROUP)
+                        }
                         if (expiryDate != -1) {
                             val timeLeft = ProductUtils.convertExpiryDateToTimeLeft(expiryDate)
                             val daysN = ProductUtils.millisecondsIntoDays(timeLeft)
@@ -95,6 +101,7 @@ class NotificationReceiver : BroadcastReceiver() {
                     .build()
             }
         }
+
         notification?.let { notification ->
             val id =
                 intent?.getLongExtra(NotificationConstants.EXPIRY_DATE_ID_KEY, -1L)

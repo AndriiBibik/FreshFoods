@@ -14,8 +14,6 @@ import android.media.ExifInterface
 import android.media.ThumbnailUtils
 import android.os.Build
 import android.os.Environment
-import android.support.v4.os.IResultReceiver
-import android.util.Log
 import android.util.TypedValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
@@ -42,7 +40,6 @@ import products.fresh.foods.utils.ProductUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
@@ -680,7 +677,6 @@ class ProductShelfViewModel(
         val ids = LongArray(notificationTimes.size) {
             insertNotification(Notification(expiryDateId))
         }
-        val testTime = Date().time
 
         // iterate to set all notifications
         notificationTimes.forEachIndexed {  idx, time ->
@@ -705,10 +701,9 @@ class ProductShelfViewModel(
                     PendingIntent.getBroadcast(application, notificationId.toInt(), intent, PendingIntent.FLAG_ONE_SHOT)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-//                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
-                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, (testTime + (idx+1)*5000), pendingIntent)
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
                 } else { // for lower APIs: 16,17,18
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, (testTime + (idx+1)*5000), pendingIntent)
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, time, pendingIntent)
                 }
             }
         }
