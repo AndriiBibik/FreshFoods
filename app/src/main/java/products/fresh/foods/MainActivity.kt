@@ -17,8 +17,6 @@ import products.fresh.foods.GoodFoodApp.Companion.APP_SHARED_PREFERENCES
 import products.fresh.foods.GoodFoodApp.Companion.IS_NIGHT_MODE
 import products.fresh.foods.notifications.NotificationConstants
 import products.fresh.foods.productshelf.NotificationOptionsHelper
-import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE as MODE_PRIVATE1
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -65,10 +63,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         appSharedPreferences = getSharedPreferences(APP_SHARED_PREFERENCES, MODE_PRIVATE)
-        val isNightMode = when(appSharedPreferences.contains(IS_NIGHT_MODE)) {
-            true -> appSharedPreferences.getBoolean(IS_NIGHT_MODE, false)
-            false -> AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
-        }
+        val isNightMode = appSharedPreferences.getBoolean(
+            IS_NIGHT_MODE,
+            application.resources.getBoolean(R.bool.is_night_mode)
+        )
 
         // setting day or night theme
         when(isNightMode) {

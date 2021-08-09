@@ -1,10 +1,12 @@
 package products.fresh.foods.utils
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import products.fresh.foods.GoodFoodApp
+import products.fresh.foods.GoodFoodApp.Companion.IS_NIGHT_MODE
 import products.fresh.foods.R
 import java.text.SimpleDateFormat
 import java.util.*
@@ -44,15 +46,30 @@ class ProductUtils {
         }
 
         fun getTextLeftColor(expiryDate: Int): Int {
-            // application context to work with resources
+
             val application = GoodFoodApp.instance
 
             val timeLeft = convertExpiryDateToTimeLeft(expiryDate)
 
             val daysCount = (timeLeft / (1000 * 60 * 60 * 24)).toInt()
-            // set days left color based on daysLeft
-            val colorsArray =
-                application.resources.getStringArray(R.array.left_days_indicators)
+
+            // app shared preferences
+            val sp = application.getSharedPreferences(
+                GoodFoodApp.APP_SHARED_PREFERENCES, Context.MODE_PRIVATE
+            )
+
+            // getting days left color based on day or night mode
+            //
+            val isNightMode = sp.getBoolean(
+                IS_NIGHT_MODE,
+                application.resources.getBoolean(R.bool.is_night_mode)
+            )
+            val colorsArray = when(isNightMode) {
+                false -> application.resources.getStringArray(R.array.left_days_indicators_day)
+                true -> application.resources.getStringArray(R.array.left_days_indicators_night)
+            }
+            //
+            //
 
             // getting right color array index
             val colorIndex = daysCount.let { daysN ->
@@ -108,7 +125,6 @@ class ProductUtils {
         // milliseconds into number of hour (minus num of days)
         fun millisecondsIntoHours(milliseconds: Long) = (milliseconds / (60*60*1000)) - (millisecondsIntoDays(milliseconds)*24)
 
-        //TODO test?
         // milliseconds into number of minutes (minus number of hours)
         fun millisecondsIntoMinutes(milliseconds: Long)
                 = (milliseconds / (60*1000)) - (millisecondsIntoDays(milliseconds)*24*60 + millisecondsIntoHours(milliseconds)*60)
@@ -119,6 +135,5 @@ class ProductUtils {
                 BitmapFactory.decodeFile(path)
             }
         }
-
     }
 }

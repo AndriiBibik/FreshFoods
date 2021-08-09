@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <bool name="is_landscape">false</bool>
+    <!--to recognize if there is a day or night mode in system-->
+    <bool name="is_night_mode">false</bool>
 </resources>

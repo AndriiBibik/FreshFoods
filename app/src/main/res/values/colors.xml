@@ -29,7 +29,8 @@
     <color name="spinner_stroke_color">#757575</color>
     <color name="white">#FFFFFF</color>
 
-    <string-array name="left_days_indicators">
+    <!--Day mode colors for days left text-->
+    <string-array name="left_days_indicators_day">
         <item>#E13A20</item><!--0-->
         <item>#e0731b</item><!--1 day-->
         <item>#dfae15</item><!--2-->
@@ -38,6 +39,17 @@
         <item>#48dd05</item><!--5-->
         <item>#00dc00</item><!--6-->
         <item>#9E9E9E</item><!--expired-->
+    </string-array>
+    <!--Night mode colors for days left text-->
+    <string-array name="left_days_indicators_night">
+        <item>#FF1E1E</item><!--0-->
+        <item>#e0731b</item><!--1 day-->
+        <item>#dfae15</item><!--2-->
+        <item>#d1de10</item><!--3-->
+        <item>#8ede0b</item><!--4-->
+        <item>#48dd05</item><!--5-->
+        <item>#00dc00</item><!--6-->
+        <item>#F5F5F5</item><!--expired-->
     </string-array>
 
     <!--general options-->
